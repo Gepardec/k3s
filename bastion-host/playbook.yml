@@ -1,0 +1,4 @@
+- name: Bastion
+  hosts: localhost
+  tasks:
+    - debug: "Hello World"
