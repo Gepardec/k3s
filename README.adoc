@@ -17,3 +17,8 @@ include::pxe-boot/README.adoc[leveloffset=+3]
 == Hardware
 
 === BOM
+
+== Personal Logs
+
+=== Mario's Log
+include::docs/log-mario.adoc[leveloffset=+3]

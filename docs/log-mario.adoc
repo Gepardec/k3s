@@ -18,7 +18,7 @@ We choose a Raspberry Pi cluster. For a couple of reasons:
 - It is very affordable
 - We get the full experience of a kubernetes on bare metal installation.
 - The performance should be plenty for our workload(blinking led's)
-- We get dedicated servers for infrastructure(DHCP,PXE NFS)
+- We can get dedicated servers for infrastructure(DHCP,PXE NFS)
 
 ==== Kubernetes
 We are using k3s because it seems to be the optimal choice for our hardware
