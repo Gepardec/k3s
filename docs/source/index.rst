@@ -3,10 +3,10 @@
 
    <br />
 
-.. image:: https://img.shields.io/travis/com/gepardec/train?style=flat-square
+.. image:: https://img.shields.io/travis/com/gepardec/k3s?style=flat-square
    :alt: cicd badge
    :align: left
-   :target: https://travis-ci.com/Gepardec/train
+   :target: https://travis-ci.com/Gepardec/k3s
 
 .. image:: https://img.shields.io/badge/license-GPL%20v3.0-brightgreen.svg?style=flat-square
    :alt: licence badge
@@ -26,3 +26,43 @@
 Welcome to our k3s Learning Friday Project!
 =======================================================
 
+Providing a frictionless experience for workshop participants with hands on, technical sections is key to focus on what is important - hands on learning and experimenting with new technology. 
+
+It should be easy to work through the hands on labs no matter the operating system or hardware specification of your device. 
+
+
+Infrastructure
+----------------
+
+.. toctree::
+   :maxdepth: 0
+   :hidden:
+   :caption: Infrastructure
+
+   pxe/index
+   dns/index
+   dhcp/index
+   bastion/index
+   hardware/index
+
+Personal Logs
+---------------
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Personal Logs
+
+   logs/mario
+
+
+Organisational
+---------------
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Organisational
+
+   org/dod
+   org/goals

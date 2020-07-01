@@ -18,8 +18,8 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'workshop infra'
-author = 'Clemens Kaserer'
+project = 'k3s'
+author = 'gepardec'
 
 # The full version, including alpha/beta/rc tags
 release = 'latest'
@@ -54,7 +54,7 @@ html_theme = "sphinx_rtd_theme"
 html_context = {
     "display_github": True, # Integrate GitHub
     "github_user": "gepardec", # Username
-    "github_repo": "train", # Repo name
+    "github_repo": "k3s", # Repo name
     "github_version": "master", # Version
     "conf_py_path": "/docs/source/", # Path in the checkout to the docs root
 }
