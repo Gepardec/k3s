@@ -26,13 +26,8 @@
 Welcome to our k3s Learning Friday Project!
 =======================================================
 
-Providing a frictionless experience for workshop participants with hands on, technical sections is key to focus on what is important - hands on learning and experimenting with new technology. 
-
-It should be easy to work through the hands on labs no matter the operating system or hardware specification of your device. 
-
-
-Infrastructure
-----------------
+.. Infrastructure
+.. ----------------
 
 .. toctree::
    :maxdepth: 0
@@ -45,8 +40,8 @@ Infrastructure
    bastion/index
    hardware/index
 
-Personal Logs
----------------
+.. Personal Logs
+.. ---------------
 
 .. toctree::
    :maxdepth: 1
@@ -56,8 +51,8 @@ Personal Logs
    logs/mario
 
 
-Organisational
----------------
+.. Organisational
+.. ---------------
 
 .. toctree::
    :maxdepth: 1
