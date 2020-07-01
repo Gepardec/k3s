@@ -61,3 +61,4 @@ Welcome to our k3s Learning Friday Project!
 
    org/dod
    org/goals
+   org/contribute
