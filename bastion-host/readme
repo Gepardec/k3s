@@ -45,10 +45,10 @@ Um Schlüssel auf einen Windows-basierenden System erstellen zu können nutzen w
 1.) Als erstes müssen wir die heruntergeladene Software auf unserem Windows Rechner installieren und dann die Software PuTTYgen öffnen.
 2.) Wenn PuTTYgen geöffnet ist, klick auf den “Generate” Button und bewege deine Maus auf der offenen Oberfläche zufällig hin und her. Diese zufälligen Bewegungen werden als “echtes” Zufälliges Element für die generierung der Keys genutzt.
 3.) Sind die Schlüssel generiert, müssen wir noch ein paar Dinge erledigen.
-        - Setzte einen Namen für die Schlüssel.
-        - (OPTIONAL) Setzte einen Passkey welcher eine zweite Sicherheitsschicht bietet sollte der Schlüssel in die falschen Hände geraten.
-        - Speichere den public und private Key auf deinem Rechner.
-        - Kopiere den public Key aus der Textbox in PuTTYgen.
+        3.1.) Setzte einen Namen für die Schlüssel.
+        3.2.) (OPTIONAL) Setzte einen Passkey welcher eine zweite Sicherheitsschicht bietet sollte der Schlüssel in die falschen Hände geraten.
+        3.3.) Speichere den public und private Key auf deinem Rechner.
+        3.4.) Kopiere den public Key aus der Textbox in PuTTYgen.
 4.) Der nächste Schritt ist wie wir den public SSH Schlüssel in den Raspberry Pi integrieren.
 
 *Verbinden mit dem privaten Schlüssel in Linux*
