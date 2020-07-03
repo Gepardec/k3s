@@ -1,0 +1,6 @@
+#!/bin/bash
+
+local users = ["daniel", "clemens", "felix" ]
+
+#bash loop über users
+    useradd users[x] && passwd passwort

@@ -1,13 +1,25 @@
 FROM centos:7
 
+MAINTAINER k3s Team
+
 RUN yum -y update && \
-
-    yum -y install httpd && \
-
+    yum -y install httpd nmap vim git htop openssh-server openssh-clients ansible && \
     yum clean all
 
-# RUN yum install httpd
+COPY users /tmp
+RUN chmod +x /tmp/users
 
-# RUN yum install ansible
+ENTRYPOINT ["bin/bash"]
 
-# RUN yum -y install openssh-server openssh-clients
+# RUN adduser
+
+# RUN ssh-keygen ...
+
+# RUN mkdir /root/.ssh/ && \
+#     echo "ssh-rsa ..." > ~/.ssh/authorized_keys && \
+#     chmod 700 ~/.ssh && \
+#     chmod 600 ~/.ssh/authorized_keys
+#      .
+#      .
+#      .
+
