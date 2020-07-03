@@ -1,6 +1,11 @@
 #!/bin/bash
 
-local users = ["daniel", "clemens", "felix" ]
+local users = ["daniel", "clemens", "felix", "andreas", "mario", "philipp", "johannes" ]
 
 #bash loop über users
-    useradd users[x] && passwd passwort
+
+for u in users
+DO
+  echo "Welcome $u in k3s"
+  useradd $u && passwd $u
+DONE

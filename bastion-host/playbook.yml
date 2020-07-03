@@ -1,4 +1,5 @@
-- name: Bastion
+- name: Bastion Host
   hosts: localhost
   tasks:
-    - debug: "Hello World"
+    - debug:
+        msg: Hello k3s!
