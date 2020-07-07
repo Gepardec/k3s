@@ -26,6 +26,13 @@
 Welcome to our k3s Learning Friday Project!
 =======================================================
 
+.. toctree::
+   :maxdepth: 0
+   :hidden:
+   :caption: Architecture
+
+   arch/index
+
 .. Infrastructure
 .. ----------------
 
