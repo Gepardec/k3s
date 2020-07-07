@@ -1,7 +1,8 @@
+****************************
 Contribute to our Docs
-#################################
+****************************
 
-Our Documentation is contained in the :code:`/docs` folder and available as github paged. We use the make file to generate html code via 
+Our Documentation is contained in the :code:`/docs` folder and available via github pages. We use the included make file to generate html code via 
 
 .. code-block:: bash
    

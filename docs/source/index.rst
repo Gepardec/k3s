@@ -59,6 +59,9 @@ Welcome to our k3s Learning Friday Project!
    :hidden:
    :caption: Organisational
 
-   org/dod
+
    org/goals
+   org/howwework
+   org/communication
+   org/dod
    org/contribute
