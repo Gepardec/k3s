@@ -1,0 +1,24 @@
+= k3s - Sie Reliability
+:sourcedir: ./
+:toc:
+ifndef::imagesdir[:imagesdir: /docs]
+
+== Modules
+
+=== PXE server
+include::pxe-boot/README.adoc[leveloffset=+3]
+
+=== DHCP server
+
+=== DNS server
+
+=== Bastion Host
+
+== Hardware
+
+=== BOM
+
+== Personal Logs
+
+=== Mario's Log
+include::docs/log-mario.adoc[leveloffset=+3]

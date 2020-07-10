@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Mario’s Personal log &mdash; k3s latest documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Goals" href="../org/goals.html" />
+    <link rel="prev" title="Hardware" href="../hardware/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> k3s
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Architecture</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../arch/index.html">Overview</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Infrastructure</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pxe/index.html">PXE Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dns/index.html">DNS Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dhcp/index.html">DHCP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../bastion/index.html">Bastion Host</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hardware/index.html">Hardware</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Personal Logs</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mario’s Personal log</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#day-0-kickoff">Day 0 Kickoff</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#why">Why</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-what">How &amp; What</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cluster">Cluster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kubernetes">Kubernetes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#automation">Automation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#day-1-pxe-server-exploration-phase">Day 1 PXE server exploration phase</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#plan">Plan</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#first-steps">First steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#further-steps">Further steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#work">Work</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#log">Log</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#resources">Resources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dev-environment">Dev Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#links">Links</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Organisational</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../org/goals.html">Goals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../org/howwework.html">How we work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../org/communication.html">Communication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../org/dod.html">Definition of Done</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../org/contribute.html">Contribute to our Docs</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">k3s</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Mario’s Personal log</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/gepardec/k3s/blob/master/docs/source/logs/mario.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mario-s-personal-log">
+<h1>Mario’s Personal log<a class="headerlink" href="#mario-s-personal-log" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="day-0-kickoff">
+<h2>Day 0 Kickoff<a class="headerlink" href="#day-0-kickoff" title="Permalink to this headline">¶</a></h2>
+<p>At the kickoff meeting we discussed what we wanted to do and how. The Big Picture:
+We want to run a kubernetes cluster.</p>
+<div class="section" id="why">
+<h3>Why<a class="headerlink" href="#why" title="Permalink to this headline">¶</a></h3>
+<p>Because its interesting and because it turned out that we can!
+Setting up your own kubernetes is a great way to get hands on experience.</p>
+</div>
+<div class="section" id="how-what">
+<h3>How &amp; What<a class="headerlink" href="#how-what" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="cluster">
+<h4>Cluster<a class="headerlink" href="#cluster" title="Permalink to this headline">¶</a></h4>
+<p>We choose a Raspberry Pi cluster. For a couple of reasons:</p>
+<ul class="simple">
+<li><p>It is very affordable</p></li>
+<li><p>We get the full experience of a kubernetes on bare metal installation.</p></li>
+<li><p>The performance should be plenty for our workload(blinking led’s)</p></li>
+<li><p>We can get dedicated servers for infrastructure(DHCP,PXE NFS)</p></li>
+</ul>
+</div>
+<div class="section" id="kubernetes">
+<h4>Kubernetes<a class="headerlink" href="#kubernetes" title="Permalink to this headline">¶</a></h4>
+<p>We are using k3s because it seems to be the optimal choice for our hardware</p>
+</div>
+<div class="section" id="automation">
+<h4>Automation<a class="headerlink" href="#automation" title="Permalink to this headline">¶</a></h4>
+<p>We want to use automation as much as reasonable.
+In the first step this means providing a PXE server to automate OS installation on the other machines.
+The PXE server itself should be setup via ansible or be available as docker image.
+For testing and development of the PXE server we will use vm’s managed by vagrant.</p>
+</div>
+</div>
+</div>
+<div class="section" id="day-1-pxe-server-exploration-phase">
+<h2>Day 1 PXE server exploration phase<a class="headerlink" href="#day-1-pxe-server-exploration-phase" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="plan">
+<h3>Plan<a class="headerlink" href="#plan" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="first-steps">
+<h4>First steps<a class="headerlink" href="#first-steps" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>Get the PXE running on a VM</p></li>
+<li><p>Get another VM to install an image from the PXE</p></li>
+</ul>
+<p>We will be using vagrant in this step to manage our vm’s.</p>
+</div>
+<div class="section" id="further-steps">
+<h4>Further steps<a class="headerlink" href="#further-steps" title="Permalink to this headline">¶</a></h4>
+<p>When we are happy how everything works we will write ansible roles and a dockerfile.</p>
+</div>
+<div class="section" id="work">
+<h4>Work<a class="headerlink" href="#work" title="Permalink to this headline">¶</a></h4>
+<p>I never used vagrant or ansible before so i will need to install them and find out how everything works. The same goes for a PXE server.
+There are some links that look like good starting points in the &lt;&lt;Links,links section&gt;&gt;.</p>
+</div>
+<div class="section" id="log">
+<h4>Log<a class="headerlink" href="#log" title="Permalink to this headline">¶</a></h4>
+<p>So vagrant seems easy enough:
+sudo dnf install vagrant</p>
+</div>
+</div>
+</div>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dev-environment">
+<h3>Dev Environment<a class="headerlink" href="#dev-environment" title="Permalink to this headline">¶</a></h3>
+<p>I am working on a dual boot laptop fedora31/win10 mostly on fedora.</p>
+</div>
+<div class="section" id="links">
+<h3>Links<a class="headerlink" href="#links" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://diegolemos.net/tag/vagrant/[Vagrant">https://diegolemos.net/tag/vagrant/[Vagrant</a> PXE Server]</p>
+<p><a class="reference external" href="https://blog.linuxserver.io/2019/12/16/netboot-xyz-docker-network-boot-server-pxe/[PXE">https://blog.linuxserver.io/2019/12/16/netboot-xyz-docker-network-boot-server-pxe/[PXE</a> Server Docker Image]</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../org/goals.html" class="btn btn-neutral float-right" title="Goals" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../hardware/index.html" class="btn btn-neutral float-left" title="Hardware" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
