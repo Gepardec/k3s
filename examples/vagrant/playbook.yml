@@ -4,4 +4,12 @@
   tasks:
   - debug:
       msg: "Hello World"
+  - name: Install basic tools
+    package:
+      name:
+        - vim
+        - htop
+        - screen
+        - net-tools
+      state: present
 ...
