@@ -1,0 +1,14 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  tasks:
+  - name: get file stats for /tmp/helloworld
+    stat:
+      path: /tmp/helloworld
+    register: stat_result
+
+  - name: check that /tmp/helloworld exists
+    assert:
+      that: stat_result.stat.exists

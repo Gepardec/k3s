@@ -1,0 +1,9 @@
+---
+# tasks file for hello
+
+- name: hello world
+  copy:
+    dest: "/tmp/helloworld"
+    content: |
+      hello
+      world

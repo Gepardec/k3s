@@ -1,4 +1,4 @@
-= k3s - Sie Reliability
+= k3s - Site Reliability
 :sourcedir: ./
 :toc:
 ifndef::imagesdir[:imagesdir: /docs]

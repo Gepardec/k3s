@@ -1,4 +1,6 @@
 .idea/
+.DS_Store
 work/
 .vagrant/
-.DS_Store
+.ckaserer
+.vagrant/
