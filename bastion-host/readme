@@ -76,3 +76,6 @@ Das Verbinden über PuTTY ist ein recht einfacher Vorgang der niemandem Probleme
 3.) Speichere und verlasse den Editor mittels Strg + X, Y und Enter.
 4.) Starte jetzt den Raspberry Pi neu damit die Änderungen wirkung zeigen. Stelle sicher das die Verbindung über SSH und dem Schlüssel funktioniert bevor du die User und Passwort Authentifizierung deaktivierst oder du sperrst dich aus deinem Raspberry aus.
 5.) Wenn alles funktioniert hat sollte es nicht mehr möglich sein sich mit dem Raspberry zu verbinden ohne den richtigen Schlüssel zu haben.
+
+* Usernames:
+Jedes Teammitglied besitzt einen eigenen User auf dem Bastion Host. Der Username setzt sich aus dem Vorname + erster Buchstabe des Nachnamen.
