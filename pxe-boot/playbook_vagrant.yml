@@ -1,7 +1,6 @@
 ---
 - hosts: all
   become: true
-  tasks:
-    - include_role:
-        name: pxe-boot
+  roles:
+    - role: pxe-boot
 ...

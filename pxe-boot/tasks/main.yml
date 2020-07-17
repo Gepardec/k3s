@@ -1,2 +1,52 @@
 ---
 # tasks file for pxe-boot
+
+- name: set variables
+  set_fact:
+    configure_network: true
+    install_additional_packages: "{{ INSTALL_ADDITIONAL_PACKAGES }}"
+    is_vagrant: "{{ IS_VAGRANT }}"
+
+- name: Install required packages
+  package:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  with_items:
+    - "{{ REQUIRED_PACKAGES }}"
+
+- name: Install additional packages
+  package:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  with_items:
+    - "{{ ADDITIONAL_PACKAGES }}"
+  when: ( install_additional_packages == true )
+
+- name: Cleanup Network Files - interfaces
+  file:
+    name: /etc/network/interfaces
+    state: absent
+  when: ( configure_network == true )
+
+- name: Cleanup Network Files - resolve.conf
+  file:
+    name: /etc/resolv.conf
+    state: absent
+  when: (  configure_network  == true )
+
+- name: Configure Network - static IP
+  template:
+    src: templates/interfaces.j2
+    dest: /etc/network/interfaces
+  when: (  configure_network == true )
+
+- name: Configure Network - static IP
+  template:
+    src: templates/resolv.conf.j2
+    dest: /etc/resolv.conf
+  when: ( configure_network == true and is_vagrant == false)
+  notify: restart networking
+
+...

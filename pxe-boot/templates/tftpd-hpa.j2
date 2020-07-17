@@ -1,0 +1,4 @@
+TFTP_USERNAME="{{ PXE_TFTP_USERNAME | default("tftp") }}"
+TFTP_DIRECTORY="{{ PXE_TFTP_DIRECTORY | default("/srv/tftp") }}"
+TFTP_ADDRESS="{{  PXE_TFTP_ADDRESS | default("0.0.0.0:69") }}"
+TFTP_OPTIONS="{{  PXE_TFTP_OPTIONS | default("--secure") }}"

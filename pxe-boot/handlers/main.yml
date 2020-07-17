@@ -1,2 +1,8 @@
 ---
 # handlers file for pxe-boot
+
+- name: restart networking
+  service:
+    name: networking
+    state: restarted
+...

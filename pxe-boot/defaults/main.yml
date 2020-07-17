@@ -1,2 +1,24 @@
 ---
 # defaults file for pxe-boot
+# configuration parameters
+INSTALL_ADDITIONAL_PACKAGES: true
+CONFIGURE_NETWORK: true
+IS_VAGRANT: true
+
+# package configuration
+REQUIRED_PACKAGES:
+  - tftpd-hpa
+  - tftpd
+  - pxelinux
+  - syslinux
+
+ADDITIONAL_PACKAGES:
+  - vim
+
+# templating variables
+PXE_BOOT_STATIC_IP: 192.168.0.10
+PXE_BOOT_NAMESERVER: 8.8.8.8
+PXE_BOOT_NETMASK: 255.255.255.0
+PXE_BOOT_GATEWAY: 192.168.0.10
+
+...
