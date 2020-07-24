@@ -1,8 +1,8 @@
 ---
 # handlers file for pxe-boot
 
-- name: restart networking
+- name: restart tftpd-hpa
   service:
-    name: networking
+    name: tftpd-hpa
     state: restarted
 ...

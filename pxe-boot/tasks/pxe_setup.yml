@@ -1,0 +1,54 @@
+---
+
+- name: Install required PXE packages
+  package:
+    name: "{{ item }}"
+    state: installed
+  become: yes
+  with_items:
+    - "{{ pxe_additional_packages }}"
+  tags: pxeserver
+
+- name: Make Network Boot Programs for BIOS based systems available
+  command: cp "{{ item }}" "{{ pxeserver_path }}/{{ item|regex_replace('.*/', '') }}"
+  args:
+    creates: "{{ pxeserver_path }}/{{ item|regex_replace('.*/', '') }}"
+  with_items: "{{ pxeserver_files }}"
+  tags: pxeserver
+
+- name: Create directory for PXE server configuration
+  file:
+    path: "{{ pxeserver_path }}/pxelinux.cfg"
+    state: directory
+  tags: pxeserver
+
+- name: Create directories for boot images
+  file:
+    path: "{{ pxeserver_path }}/{{ item.name }}"
+    state: directory
+  with_items:
+    - "{{ pxeserver_img_images }}"
+    - "{{ pxeserver_iso_images }}"
+  tags: pxeserver
+
+- name: Download ISO
+  get_url:
+    url: "{{ item.iso_url }}{{ item.iso }}"
+    dest: "{{ pxeserver_path }}/{{ item.name }}/{{ item.iso }}"
+  with_items: "{{ pxeserver_iso_images }}"
+  tags: pxeserver
+
+- name: Download Image
+  get_url:
+    url: "{{ item.url }}{{ item.img }}"
+    dest: "{{ pxeserver_path }}/{{ item.name }}/{{ item.img }}"
+  with_items: "{{ pxeserver_img_images }}"
+  tags: pxeserver
+
+- name: Create default menu for BIOS based systems
+  template:
+    src: pxelinux.cfg_default
+    dest: "{{ pxeserver_path }}/pxelinux.cfg/default"
+  tags: pxeserver
+
+...

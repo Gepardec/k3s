@@ -1,0 +1,13 @@
+- name: set variables
+  set_fact:
+    configure_network: true
+    install_additional_packages: "{{ install_additional_packages }}"
+
+- name: Install additional packages
+  package:
+    name: "{{ item }}"
+    state: installed
+  become: yes
+  with_items:
+    - "{{ additional_packages }}"
+  when: ( install_additional_packages == true )

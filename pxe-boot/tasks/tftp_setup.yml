@@ -1,0 +1,25 @@
+---
+- name: Install required tftp packages
+  package:
+    name: "{{ item }}"
+    state: installed
+  become: yes
+  with_items:
+    - "{{ tftp_required_packages }}"
+  tags: tftpserver
+
+- name: create required directories
+  file:
+    path: "{{ tftp_root_directory }}"
+    state: directory
+    become: true
+    tags: tftpserver
+
+- name: Template tftpd config
+  template:
+    src: tftpd.tftpd-hpa
+    dest: /etc/default/tftpd-hpa
+  notify: restart tftpd-hpa
+  tags: tftpserver
+
+...

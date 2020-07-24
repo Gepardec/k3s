@@ -1,24 +1,24 @@
 ---
-# defaults file for pxe-boot
-# configuration parameters
-INSTALL_ADDITIONAL_PACKAGES: true
-CONFIGURE_NETWORK: true
-IS_VAGRANT: true
 
 # package configuration
-REQUIRED_PACKAGES:
+tftp_required_packages:
   - tftpd-hpa
   - tftpd
+
+pxe_required_packages:
   - pxelinux
   - syslinux
 
-ADDITIONAL_PACKAGES:
+additional_packages:
   - vim
+  - htop
+  - nettools
 
-# templating variables
-PXE_BOOT_STATIC_IP: 192.168.0.10
-PXE_BOOT_NAMESERVER: 8.8.8.8
-PXE_BOOT_NETMASK: 255.255.255.0
-PXE_BOOT_GATEWAY: 192.168.0.10
+# pxe files
+pxeserver_files:
+  - /usr/share/syslinux/memdisk
+  - /usr/share/syslinux/menu.c32
+  - /usr/share/syslinux/pxelinux.0
 
+pxeserver_ip: "{{ ansible_default_ipv4.address }}"
 ...

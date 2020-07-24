@@ -1,2 +1,23 @@
 ---
 # vars file for pxe-boot
+#CONFIGUREABLE PARAMETERS
+INSTALL_ADDITIONAL_PACKAGES: true
+PXE_TFTP_USERNAME: root
+PXE_TFTP_DIRECTORY: "/srv/tftp"
+PXE_TFTP_ADDRESS: "0.0.0.0:69"
+PXE_TFTP_OPTIONS: "--secure"
+
+tftp_root_directory: "{{ /srv/tftp }}"
+pxeserver_directory: "pxelinux"
+pxeserver_path: "{{ tftp_root_directory }}/{{ pxeserver_directory }}"
+pxeserver_ip: "{{ ansible_default_ipv4.address }}"
+
+pxeserver_iso_images: []
+pxeserver_img_images:
+  - name: raspberry_os_64
+    default: true
+    label: Raspberry OS x64 Beta
+    url: https://downloads.raspberrypi.org/raspios_arm64/images
+    img: raspios_arm64-2020-05-28/2020-05-27-raspios-buster-arm64.zip
+
+...
