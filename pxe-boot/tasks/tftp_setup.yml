@@ -2,7 +2,7 @@
 - name: Install required tftp packages
   package:
     name: "{{ item }}"
-    state: installed
+    state: present
   become: yes
   with_items:
     - "{{ tftp_required_packages }}"

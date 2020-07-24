@@ -3,7 +3,7 @@
 - name: Install required PXE packages
   package:
     name: "{{ item }}"
-    state: installed
+    state: present
   become: yes
   with_items:
     - "{{ pxe_additional_packages }}"

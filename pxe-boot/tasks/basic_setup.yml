@@ -6,7 +6,7 @@
 - name: Install additional packages
   package:
     name: "{{ item }}"
-    state: installed
+    state: present
   become: yes
   with_items:
     - "{{ additional_packages }}"
