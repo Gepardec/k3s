@@ -12,12 +12,11 @@
   file:
     path: "{{ tftp_root_directory }}"
     state: directory
-    become: true
-    tags: tftpserver
+  tags: tftpserver
 
 - name: Template tftpd config
   template:
-    src: tftpd.tftpd-hpa
+    src: tftp.tftpd-hpa
     dest: /etc/default/tftpd-hpa
   notify: restart tftpd-hpa
   tags: tftpserver
