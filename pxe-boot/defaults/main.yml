@@ -20,9 +20,9 @@ additional_packages:
 
 # pxe files
 pxeserver_files:
-  - /usr/share/syslinux/memdisk
-  - /usr/share/syslinux/menu.c32
-  - /usr/share/syslinux/pxelinux.0
+  - /usr/lib/syslinux/memdisk
+  - /usr/lib/syslinux/modules/bios/menu.c32
+  - /usr/lib/PXELINUX/pxelinux.0
 
 tftp_root_directory: "/srv/tftp"
 pxeserver_directory: "pxelinux"

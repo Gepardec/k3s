@@ -6,7 +6,7 @@
     state: present
   become: yes
   with_items:
-    - "{{ pxe_additional_packages }}"
+    - "{{ pxe_required_packages }}"
   tags: pxeserver
 
 - name: Make Network Boot Programs for BIOS based systems available
