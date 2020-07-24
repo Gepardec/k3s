@@ -1,4 +1,8 @@
 ---
+PXE_TFTP_USERNAME: root
+PXE_TFTP_DIRECTORY: "/srv/tftp"
+PXE_TFTP_ADDRESS: "0.0.0.0:69"
+PXE_TFTP_OPTIONS: "--secure"
 
 # package configuration
 tftp_required_packages:
@@ -12,7 +16,7 @@ pxe_required_packages:
 additional_packages:
   - vim
   - htop
-  - nettools
+  - net-tools
 
 # pxe files
 pxeserver_files:
@@ -20,5 +24,8 @@ pxeserver_files:
   - /usr/share/syslinux/menu.c32
   - /usr/share/syslinux/pxelinux.0
 
+tftp_root_directory: "{{ /srv/tftp }}"
+pxeserver_directory: "pxelinux"
+pxeserver_path: "{{ tftp_root_directory }}/{{ pxeserver_directory }}"
 pxeserver_ip: "{{ ansible_default_ipv4.address }}"
 ...
