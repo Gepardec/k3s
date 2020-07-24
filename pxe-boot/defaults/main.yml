@@ -12,6 +12,7 @@ tftp_required_packages:
 pxe_required_packages:
   - pxelinux
   - syslinux
+  - unzip
 
 additional_packages:
   - vim

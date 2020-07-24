@@ -9,6 +9,12 @@
     - "{{ pxe_required_packages }}"
   tags: pxeserver
 
+- name: Create directory to server images from
+  file:
+    path: "{{ pxeserver_path }}"
+    state: directory
+  tags: pxeserver
+
 - name: Make Network Boot Programs for BIOS based systems available
   command: cp "{{ item }}" "{{ pxeserver_path }}/{{ item|regex_replace('.*/', '') }}"
   args:
@@ -40,10 +46,16 @@
 
 - name: Download Image
   get_url:
-    url: "{{ item.url }}{{ item.img }}"
-    dest: "{{ pxeserver_path }}/{{ item.name }}/{{ item.img }}"
+    url: "{{ item.img_url }}"
+    dest: "{{ pxeserver_path }}/{{ item.name }}/"
+  register: image_dl
   with_items: "{{ pxeserver_img_images }}"
   tags: pxeserver
+
+- name: unzip image
+  command: "unzip {{ item.dest }} {{ pxeserver_path }}/{{ item.name }}"
+  with_items:
+    - "{{ image_dl.results }}"
 
 - name: Create default menu for BIOS based systems
   template:

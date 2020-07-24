@@ -8,7 +8,7 @@ pxeserver_img_images:
   - name: raspberry_os_64
     default: true
     label: Raspberry OS x64 Beta
-    url: https://downloads.raspberrypi.org/raspios_arm64/images
-    img: raspios_arm64-2020-05-28/2020-05-27-raspios-buster-arm64.zip
+    img_url: https://downloads.raspberrypi.org/raspios_arm64/images/raspios_arm64-2020-05-28/2020-05-27-raspios-buster-arm64.zip
+    img: 2020-05-27-raspios-buster-arm64.img
 
 ...
