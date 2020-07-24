@@ -24,7 +24,7 @@ pxeserver_files:
   - /usr/share/syslinux/menu.c32
   - /usr/share/syslinux/pxelinux.0
 
-tftp_root_directory: "{{ /srv/tftp }}"
+tftp_root_directory: "/srv/tftp"
 pxeserver_directory: "pxelinux"
 pxeserver_path: "{{ tftp_root_directory }}/{{ pxeserver_directory }}"
 pxeserver_ip: "{{ ansible_default_ipv4.address }}"
