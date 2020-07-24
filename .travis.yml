@@ -1,0 +1,21 @@
+version: "~> 1.0"
+os: linux
+dist: xenial
+language: python
+services:
+- docker
+notifications:
+  email:
+    on_success: never
+    on_failure: never
+  slack:
+    rooms:
+      secure: CZBKCPnDae61CHAQ8O0QBsjixhAbHFDqi8IEv40bm7u5IPZ/If2H7i+7Ngc+SXW8mF14ktiqe7VPhkLgSjXmHgqvxHQSLr86o8O2rRJRGYDIFv5yPnXlwO7K9OyD9BySazo4jP+0ZAJc3S1OVxhJEPcCF2kaoJFu2uR7ha9WXjsNXJUl8LjK4ZygHEt0Q6CyMxiVHtBQoyIXIILndjXSwvOnv4cI8Y2z8TWj5/EESQsWNNeuvQ5WKDPrLFZM87QFlP02+hzaH8zR1fJ8HK8WAezXl+1DKpifQcQ2RDCZDCASj8uwPxHTxBhAfjKdXmloa0iGP+CZEvYzGFc+2Uqh3+K3FYt/eiSCG83SwxE8UNBgCUZrZebHAdBX1EDIB/zPxGdgMZsdBJrjn9ilsq2oGA6+vjhlbNhqaBSG+V0auoi3VJsfwn27j8g1RqUCvwhNBgxhOHXk4MLBMQfGT6oNB1kJFLqUBdmnf7slq+mganzKv85PGgE0Qo3ArPnWVX/JeT9ZttmE2n6NIUmgZZ0wOf8XlXq9dtwN5hs8xkPceP4S6zDDwAXS1GNcfWcvojAk2Dp+UJpKj/TtwLWJuFja95pqp4tBfSTiPu4ylXEpcPzIDVlXNijt55gQZ85m7qlgng2iqMp0yTiWtJiGiRVwOCGG7gVADVO/hbBz344RReI=
+    template:
+    - "%{commit_subject}"
+    - build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) @%{branch}
+    - by %{author} %{result} in %{duration}
+    on_success: change
+    on_failure: always
+script:
+- dns/.ci/run.sh

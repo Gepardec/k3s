@@ -1,0 +1,54 @@
+---
+- name: Converge
+  hosts: all
+  vars: 
+    bind_zone_dir: /var/local/named-zones
+    bind_allow_query:
+      - any
+    bind_listen_ipv4:
+      - any
+    bind_listen_ipv6:
+      - any
+    bind_forwarders:
+      - '8.8.8.8'
+      - '8.8.4.4'
+    bind_recursion: true
+    bind_query_log: 'data/query.log'
+    bind_check_names: 'master ignore'
+    bind_zone_master_server_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    bind_zone_minimum_ttl: "2D"
+    bind_zone_ttl: "4W"
+    bind_zone_time_to_refresh: "2D"
+    bind_zone_time_to_retry: "2H"
+    bind_zone_time_to_expire: "2W"
+    bind_zone_domains:
+      - name: 'k3s.local'
+        networks:
+          - '10.0.0'
+        hostmaster_email: "office@gepardec.com"
+        hosts:
+          - name: jumpbox
+            ip: 10.0.0.1
+            aliases:
+              - dhcp
+              - bastion
+          - name: infra
+            ip: 10.0.0.2
+            aliases:
+              - dns
+              - ntp
+              - pxe
+          - name: lb
+            ip: 10.0.0.10
+          - name: master0
+            ip: 10.0.0.20
+          - name: master1
+            ip: 10.0.0.21
+          - name: master2
+            ip: 10.0.0.22
+          - name: node0
+            ip: 10.0.0.30
+          - name: node1
+            ip: 10.0.0.31
+  roles:
+    - role: bertvv.bind
