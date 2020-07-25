@@ -21,33 +21,15 @@
     bind_zone_time_to_retry: "2H"
     bind_zone_time_to_expire: "2W"
     bind_zone_domains:
-      - name: 'k3s.local'
+      - name: 'k3s'
         networks:
           - '10.0.0'
         hostmaster_email: "office@gepardec.com"
         hosts:
-          - name: jumpbox
+          - name: verify
             ip: 10.0.0.1
-            aliases:
-              - dhcp
-              - bastion
-          - name: infra
-            ip: 10.0.0.2
-            aliases:
-              - dns
-              - pxe
-              - ntp
-          - name: lb
-            ip: 10.0.0.10
-          - name: master0
-            ip: 10.0.0.20
-          - name: master1
-            ip: 10.0.0.21
-          - name: master2
-            ip: 10.0.0.22
-          - name: node0
-            ip: 10.0.0.30
-          - name: node1
-            ip: 10.0.0.31
+  pre_tasks:
+    - debug:
+        msg: "{{ hostvars }}"
   roles:
     - role: bertvv.bind

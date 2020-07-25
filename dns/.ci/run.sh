@@ -3,8 +3,14 @@
 set -e
 
 pip install -r dns/requirements.txt
+
 ansible-lint dns/
-(cd dns && molecule lint)
-(cd dns && molecule test)
+
+echo 
+echo "Scenario: ${1}"
+echo
+
+(cd dns && molecule lint --scenario-name ${1} )
+(cd dns && molecule test --scenario-name ${1} )
 
 set +e

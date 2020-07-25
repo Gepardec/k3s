@@ -1,0 +1,12 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+
+  - name: Check dns via nslookup
+    shell: nslookup verify.k3s localhost
+    register: lookup
+
+  - name: print nslookup details
+    debug: 
+      var: lookup.stdout_lines

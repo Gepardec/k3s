@@ -4,6 +4,10 @@ dist: xenial
 language: python
 services:
 - docker
+env:
+ - MOLECULE_SCENARIO=centos8
+ - MOLECULE_SCENARIO=centos7
+ - MOLECULE_SCENARIO=debian
 notifications:
   email:
     on_success: never
@@ -18,4 +22,4 @@ notifications:
     on_success: change
     on_failure: always
 script:
-- dns/.ci/run.sh
+- dns/.ci/run.sh ${MOLECULE_SCENARIO}
