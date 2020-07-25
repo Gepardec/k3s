@@ -2,11 +2,15 @@
 - name: Verify
   hosts: all
   tasks:
+  - name: Install dnsutils
+    apt:
+      name: dnsutils
+      state: present
 
   - name: Check dns via nslookup
     shell: nslookup verify.k3s localhost
     register: lookup
 
-  - name: print nslookup details
+  - name: Print nslookup details
     debug: 
       var: lookup.stdout_lines

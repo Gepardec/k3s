@@ -7,6 +7,6 @@
     shell: nslookup verify.k3s localhost
     register: lookup
 
-  - name: print nslookup details
+  - name: Print nslookup details
     debug: 
       var: lookup.stdout_lines
