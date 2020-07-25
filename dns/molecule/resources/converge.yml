@@ -28,8 +28,5 @@
         hosts:
           - name: verify
             ip: 10.0.0.1
-  pre_tasks:
-    - debug:
-        msg: "{{ hostvars }}"
   roles:
     - role: bertvv.bind
