@@ -2,8 +2,6 @@
 
 set -e
 
-pip install -r dns/requirements.txt
-
 ansible-lint dns/
 
 echo 
