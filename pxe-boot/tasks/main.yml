@@ -1,6 +1,5 @@
 ---
 # tasks file for pxe-boot
-
 - name: include basic-setup tasks
   include_tasks: basic_setup.yml
   tags:

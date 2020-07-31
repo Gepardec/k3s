@@ -1,66 +1,36 @@
 ---
 
-- name: Install required PXE packages
-  package:
-    name: "{{ item }}"
-    state: present
-  become: yes
+- name: Copy content of boot folder to tftp root directory
+  command: "cp -r /boot/* {{ tftp_root_directory }}/"
+
+- name: Export filesystems
+  command: {{ item }}
+  become: true
   with_items:
-    - "{{ pxe_required_packages }}"
-  tags: pxeserver
+    - "echo '/nfs/client1 *(rw,sync,no_subtree_check,no_root_squash)' | sudo tee -a /etc/exports"
+    - "echo '{{ tftp_root_directory }} *(rw,sync,no_subtree_check,no_root_squash)' | sudo tee -a /etc/exports"
 
-- name: Create directory to server images from
-  file:
-    path: "{{ pxeserver_path }}"
-    state: directory
-  tags: pxeserver
+- name: configre rpcbind service
+  service:
+    name: rpcbind
+    enabled: true
+    state: restarted
 
-- name: Make Network Boot Programs for BIOS based systems available
-  command: cp "{{ item }}" "{{ pxeserver_path }}/{{ item|regex_replace('.*/', '') }}"
-  args:
-    creates: "{{ pxeserver_path }}/{{ item|regex_replace('.*/', '') }}"
-  with_items: "{{ pxeserver_files }}"
-  tags: pxeserver
+- name: configure nfs-kernel-server service
+  service:
+    name: nfs-kernel-server
+    enabled: true
+    state: restarted
 
-- name: Create directory for PXE server configuration
-  file:
-    path: "{{ pxeserver_path }}/pxelinux.cfg"
-    state: directory
-  tags: pxeserver
-
-- name: Create directories for boot images
-  file:
-    path: "{{ pxeserver_path }}/{{ item.name }}"
-    state: directory
-  with_items:
-    - "{{ pxeserver_img_images }}"
-    - "{{ pxeserver_iso_images }}"
-  tags: pxeserver
-
-- name: Download ISO
-  get_url:
-    url: "{{ item.iso_url }}{{ item.iso }}"
-    dest: "{{ pxeserver_path }}/{{ item.name }}/{{ item.iso }}"
-  with_items: "{{ pxeserver_iso_images }}"
-  tags: pxeserver
-
-- name: Download Image
-  get_url:
-    url: "{{ item.img_url }}"
-    dest: "{{ pxeserver_path }}/{{ item.name }}/"
-  register: image_dl
-  with_items: "{{ pxeserver_img_images }}"
-  tags: pxeserver
-
-- name: unzip image
-  command: "unzip {{ item.dest }} {{ pxeserver_path }}/{{ item.name }}"
-  with_items:
-    - "{{ image_dl.results }}"
-
-- name: Create default menu for BIOS based systems
+- name: replace client fstab
   template:
-    src: pxelinux.cfg_default
-    dest: "{{ pxeserver_path }}/pxelinux.cfg/default"
-  tags: pxeserver
+    src: client.cmdline.txt
+    dest: "{{ tftp_root_directory}}/cmdline.txt"
+
+- name: replace client fstab
+  template:
+    src: client.fstab
+    dest: /nfs/client1/etc/fstab
+
 
 ...

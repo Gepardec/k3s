@@ -3,6 +3,48 @@
     configure_network: true
     install_additional_packages: "{{ INSTALL_ADDITIONAL_PACKAGES }}"
 
+- name: Prepare filesystem
+  command: raspi-config nonint do_expand_rootfs
+  become: true
+
+- name: reboot for filesystem changes to take effect
+  reboot:
+  become: true
+
+- name: install rsync
+  package:
+    name: rsync
+    state: present
+  become: yes
+
+- name: create directory for filesystem Copy for PXE-Clients
+  file:
+    path: /nfs/client1
+    state: directory
+  become: true
+
+- name: create Filesystem Copy for PXE-Clients
+  command: rsync -xa --progress --exclude /nfs / /nfs/client1
+  become: true
+
+- name: regenerate ssh keys on client fs - copy script
+  copy:
+    src: files/client.regenerate_ssh_keys.sh
+    dest: /tmp/regenerate_ssh_keys.sh
+    mode: 0700
+
+- name: regenerate ssh keys on client fs - execute script
+  command: /tmp/regenerate_ssh_keys.sh
+  become: true
+
+- name: Install required packages
+  package:
+    name: "{{ item }}"
+    state: present
+  become: yes
+  with_items:
+    - "{{ required_packages }}"
+
 - name: Install additional packages
   package:
     name: "{{ item }}"
@@ -11,3 +53,4 @@
   with_items:
     - "{{ additional_packages }}"
   when: ( install_additional_packages == true )
+

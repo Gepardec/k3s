@@ -1,17 +1,10 @@
 ---
-- name: Install required tftp packages
-  package:
-    name: "{{ item }}"
-    state: present
-  become: yes
-  with_items:
-    - "{{ tftp_required_packages }}"
-  tags: tftpserver
 
 - name: create required directories
   file:
     path: "{{ tftp_root_directory }}"
     state: directory
+    mode: '777'
   tags: tftpserver
 
 - name: Template tftpd config

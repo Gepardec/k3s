@@ -3,12 +3,21 @@
 #CONFIGUREABLE PARAMETERS
 INSTALL_ADDITIONAL_PACKAGES: true
 
-pxeserver_iso_images: []
+additional_packages:
+  - vim
+  - htop
+  - net-tools
+
+raspberry_serial_numbers:
+  - name: master0
+    serial: 1234567890
+  - name: master1
+    serial: 0987654321
+
 pxeserver_img_images:
   - name: raspberry_os_64
     default: true
     label: Raspberry OS x64 Beta
     img_url: https://downloads.raspberrypi.org/raspios_arm64/images/raspios_arm64-2020-05-28/2020-05-27-raspios-buster-arm64.zip
-    img: 2020-05-27-raspios-buster-arm64.img
 
 ...

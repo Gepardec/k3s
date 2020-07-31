@@ -5,19 +5,14 @@ PXE_TFTP_ADDRESS: "0.0.0.0:69"
 PXE_TFTP_OPTIONS: "--secure"
 
 # package configuration
-tftp_required_packages:
+required_packages:
   - tftpd-hpa
   - tftpd
-
-pxe_required_packages:
   - pxelinux
   - syslinux
+  - rsync
   - unzip
-
-additional_packages:
-  - vim
-  - htop
-  - net-tools
+  - nfs-kernel-server
 
 # pxe files
 pxeserver_files:
@@ -25,7 +20,12 @@ pxeserver_files:
   - /usr/lib/syslinux/modules/bios/menu.c32
   - /usr/lib/PXELINUX/pxelinux.0
 
-tftp_root_directory: "/srv/tftp"
+image_download_directory:
+  - /pxe_images/
+
+client_root_command: "/dev/nfs nfsroot={{ ansible_eth0.ipv4.address }}:/nfs/client1,vers=4.1,proto=tcp rw ip=dhcp rootwait elevator=deadline"
+
+tftp_root_directory: "/tftpboot"
 pxeserver_directory: "pxelinux"
 pxeserver_path: "{{ tftp_root_directory }}/{{ pxeserver_directory }}"
 pxeserver_ip: "{{ ansible_default_ipv4.address }}"
