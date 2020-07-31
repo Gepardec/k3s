@@ -8,7 +8,7 @@ services:
 env:
  - MOLECULE_SCENARIO=centos8
  - MOLECULE_SCENARIO=centos7
- - MOLECULE_SCENARIO=debian
+ - MOLECULE_SCENARIO=debian10
 notifications:
   email:
     on_success: never
