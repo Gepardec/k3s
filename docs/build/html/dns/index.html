@@ -87,10 +87,22 @@
 <p class="caption"><span class="caption-text">Infrastructure</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../pxe/index.html">PXE Server</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">DNS Server</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">DNS Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#kubernetes-and-dns">Kubernetes and DNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#access-kubernetes-via-dns">Access Kubernetes via DNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dns-entries-and-purpose">DNS Entries and Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-install-dns">How to install DNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ci-for-dns">CI for DNS</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../dhcp/index.html">DHCP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lb/index.html">Load Balancer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../bastion/index.html">Bastion Host</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hardware/index.html">Hardware</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Continuous Integration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ci/index.html">Travis-CI</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Personal Logs</span></p>
 <ul>
@@ -171,6 +183,59 @@
             
   <div class="section" id="dns-server">
 <h1>DNS Server<a class="headerlink" href="#dns-server" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="kubernetes-and-dns">
+<h2>Kubernetes and DNS<a class="headerlink" href="#kubernetes-and-dns" title="Permalink to this headline">¶</a></h2>
+<p>The Domain Name System (DNS) is a system for associating various types of information – such as IP addresses – with easy-to-remember names. By default most Kubernetes clusters automatically configure an internal DNS service to provide a lightweight mechanism for service discovery. Built-in service discovery makes it easier for applications to find and communicate with each other on Kubernetes clusters, even when pods and services are being created, deleted, and shifted between nodes.</p>
+<p>To access a workload in Kubernetes we use Ingress. An Ingress is a a separate resource that configures a LoadBalancer in Kubernetes. The Ingress API supports TLS termination, virtual hosts, and path-based routing. It can easily set up a load balancer to handle multiple backend services. In the case of the LoadBalancer service, the traffic entering through the external load balancer is forwarded to the kube-proxy that in turn forwards the traffic to the selected pods. In contrast, the Ingress LoadBalancer forwards the traffic straight to the selected pods which is more efficient.</p>
+<p>For virtual hosts specified by an Ingress a client must be able to resolve the DNS entry specified in the Ingress. For this purpose we run our own DNS server on our Bastion host.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="access-kubernetes-via-dns">
+<h2>Access Kubernetes via DNS<a class="headerlink" href="#access-kubernetes-via-dns" title="Permalink to this headline">¶</a></h2>
+<p>We run the kubernetes cluster in a dedicated private network. Only the bastion host provides access to the kubernetes nodes from the outside. As such all traffic directed at the kubernetes cluster needs to go through the bastion host. To enable traffic to pass through the bastion host a <a class="reference internal" href="../lb/index.html"><span class="doc">loadbalancer</span></a> is running on our bastion host with the kubernetes nodes as backend. Further information regarding our infrastructure architecture can be found in the <a class="reference internal" href="../arch/index.html"><span class="doc">architecture</span></a> section.</p>
+<p>All DNS entries pointing to our physical Loadbalancer running on the Bastion host.</p>
+<p>In order to resolve DNS entries outside our internal infrastructure network we expose the DNS running on the Bastion host. Doing so we can resolve DNS entries from our workstations and reach the kubernetes cluster.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="dns-entries-and-purpose">
+<h2>DNS Entries and Purpose<a class="headerlink" href="#dns-entries-and-purpose" title="Permalink to this headline">¶</a></h2>
+<p>Due to our infrastructure architecture we only need a wildcard dns entry <cite>*.k3s</cite> to serve the public IP of the bastion host. Further distinctions are handled by the <a class="reference internal" href="../lb/index.html"><span class="doc">loadbalancer</span></a> on the bastion host.</p>
+<p>The kubernets api can be reached via <a class="reference external" href="https://api.k3s:6443">https://api.k3s:6443</a> while workloads are available via <a class="reference external" href="http://[NAME].apps.k3s">http://[NAME].apps.k3s</a> or <a class="reference external" href="https://[NAME].apps.k3s">https://[NAME].apps.k3s</a>.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="how-to-install-dns">
+<h2>How to install DNS<a class="headerlink" href="#how-to-install-dns" title="Permalink to this headline">¶</a></h2>
+<p>The ansible role bertvv.bind is used to install and configure the DNS Server on the bastion host. Here an example of a minimalistic playbook configuring the wildcard dns entry on the bastion host.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">---</span>
+<span class="p p-Indicator">-</span> <span class="nt">hosts</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">bastion</span>
+  <span class="nt">gather_facts</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">become</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">vars</span><span class="p">:</span>
+    <span class="nt">bind_allow_query</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
+    <span class="nt">bind_listen_ipv4</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">any</span>
+    <span class="nt">bind_forwarders</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="s">&#39;8.8.8.8&#39;</span>
+    <span class="p p-Indicator">-</span> <span class="s">&#39;8.8.4.4&#39;</span>
+    <span class="nt">bind_zone_master_server_ip</span><span class="p">:</span> <span class="s">&quot;{{</span><span class="nv"> </span><span class="s">hostvars[inventory_hostname][&#39;ansible_default_ipv4&#39;][&#39;address&#39;]</span><span class="nv"> </span><span class="s">}}&quot;</span>
+    <span class="nt">bind_zone_domains</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="s">&#39;k3s&#39;</span>
+        <span class="nt">hostmaster_email</span><span class="p">:</span> <span class="s">&quot;office@gepardec.com&quot;</span>
+        <span class="nt">hosts</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="s">&quot;*&quot;</span>
+            <span class="nt">ip</span><span class="p">:</span> <span class="s">&quot;{{</span><span class="nv"> </span><span class="s">hostvars[inventory_hostname][&#39;ansible_default_ipv4&#39;][&#39;address&#39;]</span><span class="nv"> </span><span class="s">}}&quot;</span>
+  <span class="nt">roles</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bertvv.bind</span>
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="ci-for-dns">
+<h2>CI for DNS<a class="headerlink" href="#ci-for-dns" title="Permalink to this headline">¶</a></h2>
+<p>We utilize molecule to test the compatibility of the bertvv.bind ansible role with CentOS 7,8 and Debian 10 in travis-ci.com and notify our slack channel k3s-alerts on failed CI runs up and the first green build after one or more failed builds.</p>
+<p>Our latest CI runs are available at: <a class="reference external" href="https://travis-ci.com/github/gepardec/k3s">https://travis-ci.com/github/gepardec/k3s</a></p>
+</div>
 </div>
 
 

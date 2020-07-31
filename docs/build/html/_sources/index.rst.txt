@@ -44,8 +44,19 @@ Welcome to our k3s Learning Friday Project!
    pxe/index
    dns/index
    dhcp/index
+   lb/index
    bastion/index
    hardware/index
+
+.. Continuous Integration
+.. ----------------
+
+.. toctree::
+   :maxdepth: 0
+   :hidden:
+   :caption: Continuous Integration
+
+   ci/index
 
 .. Personal Logs
 .. ---------------
