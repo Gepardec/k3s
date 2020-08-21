@@ -1,0 +1,15 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+platforms:
+  - name: centos8
+    box: centos/8
+provisioner:
+  name: ansible
+verifier:
+  name: testinfra
+#  name: ansible

@@ -1,0 +1,16 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  tasks:
+  - name: check if dhcp is installed
+    package:
+      name: "isc-dhcp-server"
+      state: present
+    register: stat_result
+
+  - name: verify result
+    assert:
+      that: 
+      - stat_result.changed == false

@@ -19,8 +19,16 @@
   when: ansible_os_family == 'Debian' and dhcp_apparmor_fix|bool
   tags: dhcp
 
-- include_tasks: default-fix.yml
+- include_tasks: set-interface.yml
   when: ansible_os_family == 'Debian'
+  with_items: "{{ ansible_interfaces }}"
+  loop_control:
+    loop_var: interface
+  tags: dhcp
+
+- fail:
+    msg: "No host interface found matching the subnet specified in dhcp_subnets[].ip!"
+  when: dhcp_interface is not defined and ansible_os_family == 'Debian'
   tags: dhcp
 
 - name: Install custom includes
