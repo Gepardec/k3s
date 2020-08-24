@@ -15,9 +15,9 @@
     src: "{{workingdir}}{{imagename}}"
     dest: "{{workingdir}}{{unzipped}}"
 
-#- name: Erase target drive(SD) and copy
-#  become: yes
-#  shell: dd if={{workingdir}}{{unzipped}}{{image}} of={{sdcardpath}} status=progress
+- name: Erase target drive(SD) and copy. This can take some time.
+  become: yes
+  shell: dd if={{workingdir}}{{unzipped}}{{image}} of={{sdcardpath}} status=progress
 
 - name: Enable SSH via the SD
   become: yes

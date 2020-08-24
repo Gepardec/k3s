@@ -2,8 +2,9 @@
 - name: debug vars
   debug:
     msg: Download from {{imagepath}}{{imagename}} to {{workingdir}}{{imagename}}.
+    verbosity: 2
 
-- name: Download {{imagename}}
+- name: Download {{imagename}}. This can take some time.
   get_url:
     url: "{{imagepath}}{{imagename}}"
     dest: "{{workingdir}}{{imagename}}"

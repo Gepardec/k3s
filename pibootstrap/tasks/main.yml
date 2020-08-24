@@ -1,5 +1,5 @@
 ---
-# tasks file for piboots
+# tasks file for pibootstrap
 
 - name: Download OS Image for Raspberry
   import_tasks: ../tasks/getosimage.yml
