@@ -1,0 +1,17 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: instance
+    image: docker.io/pycontribs/centos:8
+    pre_build_image: true
+provisioner:
+  name: ansible
+  #set environment variable for vaultpassword
+  env:
+    ANSIBLE_VAULT_PASSWORD_FILE: ../../password.yml
+verifier:
+  name: ansible
+

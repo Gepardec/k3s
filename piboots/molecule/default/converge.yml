@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: localhost
+  tasks:
+    - name: "Include piboots"
+      include_role:
+        name: "piboots"

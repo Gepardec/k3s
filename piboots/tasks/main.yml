@@ -1,0 +1,8 @@
+---
+# tasks file for piboots
+
+- name: Download OS Image for Raspberry
+  import_tasks: ../tasks/getosimage.yml
+
+- name: imagetosd
+  import_tasks: ../tasks/imagetosd.yml
