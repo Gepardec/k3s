@@ -1,0 +1,61 @@
+---
+# sudopassword is stored in an ansible-vault:
+# ansible_sudo_pass: mysudopassword
+- name: Include vars from vault
+  include_vars:
+    file: "{{ vaultfilepath }}"
+
+- name: Create a directory if it does not exist
+  file:
+    path: "{{workingdir}}{{unzipped}}"
+    state: directory
+
+- name: Extract image
+  unarchive:
+    src: "{{workingdir}}{{imagename}}"
+    dest: "{{workingdir}}{{unzipped}}"
+
+#- name: Erase target drive(SD) and copy
+#  become: yes
+#  shell: dd if={{workingdir}}{{unzipped}}{{image}} of={{sdcardpath}} status=progress
+
+- name: Enable SSH via the SD
+  become: yes
+  file:
+    path: "{{ sdbootpath }}/ssh"
+    state: touch
+
+- name: config pi with static ip 192.168.0.10 line 1/5
+  become: yes
+  lineinfile:
+    path: "{{ dhcpconfpath }}"
+    insertafter: '^# Example\sstatic\sIP\sconfiguration:'
+    line: interface eth0
+
+- name: config pi with static ip 192.168.0.10 line 2/5
+  become: yes
+  lineinfile:
+    path: "{{ dhcpconfpath }}"
+    insertafter: '^interface\seth0'
+    line: static ip_address=192.168.0.10/24
+
+- name: config pi with static ip 192.168.0.10 line 3/5
+  become: yes
+  lineinfile:
+    path: "{{ dhcpconfpath }}"
+    insertafter: '^static\sip_address='
+    line: static ip6_address=fd51:42f8:caae:d92e::ff/64
+
+- name: config pi with static ip 192.168.0.10 line 4/5
+  become: yes
+  lineinfile:
+    path: "{{ dhcpconfpath }}"
+    insertafter: '^static\sip6_address='
+    line: static routers=192.168.0.1
+
+- name: config pi with static ip 192.168.0.10 line 5/5
+  become: yes
+  lineinfile:
+    path: "{{ dhcpconfpath }}"
+    insertafter: '^static\srouters='
+    line: static domain_name_servers=192.168.0.1 8.8.8.8 fd51:42f8:caae:d92e::1

@@ -1,0 +1,13 @@
+---
+# vars file for pibootstrap
+imagename: 2020-05-27-raspios-buster-arm64.zip
+image: 2020-05-27-raspios-buster-arm64.img
+imagepath: https://downloads.raspberrypi.org/raspios_arm64/images/raspios_arm64-2020-05-28/
+
+unzipped: unzipped/
+sdcardpath: /dev/mmcblk0
+vaultfilepath: ../secret
+
+workingdir: /home/work/Downloads/
+sdbootpath: /run/media/work/boot/
+dhcpconfpath: /run/media/work/rootfs/etc/dhcpcd.conf

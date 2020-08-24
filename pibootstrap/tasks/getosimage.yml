@@ -3,7 +3,7 @@
   debug:
     msg: Download from {{imagepath}}{{imagename}} to {{workingdir}}{{imagename}}.
 
-- name: Download 2020-05-27-raspios-buster-arm64.zip
+- name: Download {{imagename}}
   get_url:
     url: "{{imagepath}}{{imagename}}"
     dest: "{{workingdir}}{{imagename}}"
