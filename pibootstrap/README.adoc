@@ -2,7 +2,7 @@
 
 This role is for bootstrapping a raspberry pi 4.
 
-== Principle of Operations
+== Principle of Operation
 - Download Image
 - Unpack Image
 - Write Image to SD (dd will erase the target drive, double check {{ sdcardpath }})
