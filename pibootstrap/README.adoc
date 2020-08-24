@@ -1,0 +1,40 @@
+= Role Name
+
+This role is for bootstrapping a raspberry pi 4.
+
+== Principle of Operations
+- Download Image
+- Unpack Image
+- Write Image to SD (dd will erase the target drive, double check {{ sdcardpath }})
+- Write ssh file to bootpath to enable ssh on the rpi
+- Configure static IP 192.168.0.10
+
+You can now connect your machine via ethernet and ssh into the Raspberry Pi.
+For Bonuspoints use another Role and setup the Pi via ssh.
+
+== Requirements
+
+Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+
+== Role Variables
+
+You need to set the ANSIBLE_VAULT_PASSWORD_FILE in the molecule/default/molecule.yml.
+Point to a file containing the ansible-vault password.
+All the other config is in vars/main.yml.
+
+== Dependencies
+
+A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+
+== Example Playbook
+
+----
+molecule converge
+----
+
+== License
+
+
+== Author Information
+
+An optional section for the role authors to include contact information, or a website (HTML is not allowed).
