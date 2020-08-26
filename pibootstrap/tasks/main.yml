@@ -1,5 +1,12 @@
 ---
 # tasks file for pibootstrap
+- name: get the username running the deploy
+  become: false
+  local_action: command whoami
+  register: username
+
+- debug:
+    var: username.stdout
 
 - name: Download OS Image for Raspberry
   import_tasks: ../tasks/getosimage.yml

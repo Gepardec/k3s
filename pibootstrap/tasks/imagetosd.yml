@@ -19,10 +19,21 @@
   become: yes
   shell: dd if={{workingdir}}{{unzipped}}{{image}} of={{sdcardpath}} status=progress
 
+- name: restart gvfs-udisks2-volume-monitor (trouble shoot mounting partitions)
+  command: systemctl --user restart gvfs-udisks2-volume-monitor
+
+- name: Mount Partition 1, Errors will be ignored(already mounted)
+  command: udisksctl mount -b /dev/mmcblk0p1
+  ignore_errors: yes
+
+- name: Mount Partition 2, Errors will be ignored(already mounted)
+  command: udisksctl mount -b /dev/mmcblk0p2
+  ignore_errors: yes
+
 - name: Enable SSH via the SD
   become: yes
   file:
-    path: "{{ sdbootpath }}/ssh"
+    path: "{{ sdbootpath }}ssh"
     state: touch
 
 - name: config pi with static ip 192.168.0.10 line 1/5
@@ -59,3 +70,6 @@
     path: "{{ dhcpconfpath }}"
     insertafter: '^static\srouters='
     line: static domain_name_servers=192.168.0.1 8.8.8.8 fd51:42f8:caae:d92e::1
+
+- name: restart gvfs-udisks2-volume-monitor (trouble shoot mounting partitions)
+  command: systemctl --user restart gvfs-udisks2-volume-monitor
