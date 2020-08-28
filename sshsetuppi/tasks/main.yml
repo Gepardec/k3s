@@ -1,8 +1,5 @@
 ---
 # tasks file for sshsetuppi
 
-- name: Change Default Password
-  import_tasks: ../tasks/changepass.yml
-
-- name: Change Default Username
-  import_tasks: ../tasks/changeusr.yml
+- name: Create New User
+  import_tasks: ../tasks/createuser.yml

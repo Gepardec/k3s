@@ -1,0 +1,10 @@
+- name: Include vars from vault
+  include_vars:
+    file: "{{ vaultfilepath }}"
+
+- name: Create new user and add to groups
+  become: yes
+  user:
+    name: "{{newusername}}"
+    password: "{{newpassword}}"
+    groups: pi, adm, dialout, cdrom, sudo, audio, video, plugdev, games, users, input, netdev, spi, i2c, gpio
