@@ -33,9 +33,10 @@
     dest: /tmp/regenerate_ssh_keys.sh
     mode: 0700
 
-- name: regenerate ssh keys on client fs - execute script
-  command: /tmp/regenerate_ssh_keys.sh
-  become: true
+#TODO: fix stuff
+#- name: regenerate ssh keys on client fs - execute script
+#  command: /tmp/regenerate_ssh_keys.sh
+#  become: true
 
 - name: Install required packages
   package:

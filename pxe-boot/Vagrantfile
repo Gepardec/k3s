@@ -6,7 +6,7 @@
 $CPU = 1
 $MEMORY = 1024
 $CPUEXECUTIONCAP = 50 # does not work with hyper-v
-$IP = "192.168.0.10"   # does not work with hyper-v # https://www.vagrantup.com/docs/hyperv/limitations.html
+$IP = "192.169.0.10"   # does not work with hyper-v # https://www.vagrantup.com/docs/hyperv/limitations.html
 $BASEOS = "gvfoster/raspbian"
 $SSH=2210
 #########################

@@ -1,10 +1,6 @@
-#TODO: MAKE THIS WORK
 cd /nfs/client1
 sudo mount --bind /dev dev
 sudo mount --bind /sys sys
 sudo mount --bind /proc proc
-chroot .
-rm /etc/ssh/ssh_host_*
-dpkg-reconfigure openssh-server
-exit
+chroot /nfs/client1 'dpkg-reconfigure openssh-server'
 sudo umount dev sys proc
