@@ -2,14 +2,17 @@
   set_fact:
     configure_network: true
     install_additional_packages: "{{ INSTALL_ADDITIONAL_PACKAGES }}"
+    is_vagrant: "{{ IS_VAGRANT | default(false) }}"
 
 - name: Prepare filesystem
   command: raspi-config nonint do_expand_rootfs
   become: true
+  when: ( install_additional_packages == false)
 
 - name: reboot for filesystem changes to take effect
   reboot:
   become: true
+  when: ( install_additional_packages == false)
 
 - name: install rsync
   package:
@@ -33,10 +36,9 @@
     dest: /tmp/regenerate_ssh_keys.sh
     mode: 0700
 
-#TODO: fix stuff
-#- name: regenerate ssh keys on client fs - execute script
-#  command: /tmp/regenerate_ssh_keys.sh
-#  become: true
+- name: regenerate ssh keys on client fs - execute script
+  command: /tmp/regenerate_ssh_keys.sh
+  become: true
 
 - name: Install required packages
   package:

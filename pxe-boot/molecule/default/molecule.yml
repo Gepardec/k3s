@@ -7,7 +7,7 @@ driver:
     name: virtualbox
 platforms:
   - name: instance
-    box: debian/buster64
+    box: gvfoster/raspbian
     cpus: 2
     provision: yes
 provisioner:

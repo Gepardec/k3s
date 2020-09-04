@@ -1,4 +1,9 @@
 ---
+- name: blubb
+  include_tasks: basic_setup.yml
+  tags:
+    - always
+
 - name: include basic-setup tasks
   include_tasks: basic_setup.yml
   tags:
