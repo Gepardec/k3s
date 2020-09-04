@@ -2,6 +2,6 @@
 - name: Converge
   hosts: localhost
   tasks:
-    - name: "Include pibootstrap"
+    - name: "Include bootstrapsdcard"
       include_role:
-        name: "pibootstrap"
+        name: "bootstrapsdcard"
