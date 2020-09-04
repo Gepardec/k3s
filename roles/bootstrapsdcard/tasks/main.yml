@@ -1,15 +1,12 @@
 ---
-# tasks file for pibootstrap
-- name: get the username running the deploy
+# tasks file for bootstrapsdcard
+- name: get the username for vasrs/main.yml
   become: false
   local_action: command whoami
   register: username
 
-- debug:
-    var: username.stdout
-
 - name: Download OS Image for Raspberry
   import_tasks: ../tasks/getosimage.yml
 
-- name: imagetosd
+- name: Image to sd card
   import_tasks: ../tasks/imagetosd.yml

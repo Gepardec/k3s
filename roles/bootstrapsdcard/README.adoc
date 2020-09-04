@@ -10,7 +10,7 @@ This role is for bootstrapping a raspberry pi 4.
 - Configure static IP 192.168.0.10
 
 You can now connect your machine via ethernet and ssh into the Raspberry Pi.
-For Bonuspoints use another Role and setup the Pi via ssh.
+For bonuspoints use another Role and setup the Pi via ssh.
 
 == Specifics
 If this does not run on your machine it might be due to:
@@ -23,7 +23,9 @@ If this does not run on your machine it might be due to:
 
 == Requirements
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- a `password.yml` that contains the password for the ansible vault called secret.
+- an ansible vault called `secret` containing the become(sudo) password. +
+__ansible-vault create secret__
 
 == Role Variables
 
