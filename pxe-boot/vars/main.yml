@@ -2,14 +2,13 @@
 # vars file for pxe-boot
 #CONFIGUREABLE PARAMETERS
 INSTALL_ADDITIONAL_PACKAGES: true
-IS_VAGRANT: true
 
 additional_packages:
   - vim
   - htop
   - net-tools
 
-# List of Raspberry UID to create 
+# List of Raspberry UID to create
 clients:
   - client1
 
