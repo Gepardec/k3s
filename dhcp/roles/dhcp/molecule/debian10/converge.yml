@@ -30,7 +30,7 @@
         netmask: 255.255.255.0
         domain_name_servers:
           - 10.0.2.10
-        range_begin: 10.0.2.60
+        range_begin: 10.0.2.70
         range_end: 10.0.2.250
 
     dhcp_hosts:
@@ -39,15 +39,15 @@
         ip: 10.0.2.10
       - name: pxe
         mac: '00:de:ad:be:ef:01'
-        ip: 10.0.2.20
+        ip: 10.0.2.30
       - name: ntp
         mac: '00:de:ad:be:ef:02'
-        ip: 10.0.2.30
+        ip: 10.0.2.40
       - name: bastion
         mac: '00:de:ad:be:ef:03'
-        ip: 10.0.2.40
+        ip: 10.0.2.50
       - name: lb
         mac: '00:de:ad:be:ef:04'
-        ip: 10.0.2.50
+        ip: 10.0.2.60
 
     dhcp6_enable: false

@@ -2,12 +2,25 @@
 dependency:
   name: galaxy
 driver:
-  name: vagrant
-  provider:
-    name: virtualbox
+  name: docker
 platforms:
-  - name: centos8
-    box: centos/8
+  - name: dhcp_centos8
+    image: geerlingguy/docker-centos8-ansible
+    command: /sbin/init
+    privileged: true
+    docker_networks:
+    - name: 'k3s'
+      ipam_config:
+        - subnet: '10.0.2.0/24'
+    networks:
+      - name: "k3s"
+        ipv4_address: '10.0.2.20'
+    pre_build_image: true
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 provisioner:
   name: ansible
 verifier:
