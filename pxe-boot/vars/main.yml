@@ -9,4 +9,9 @@ additional_packages:
   - htop
   - net-tools
 
+# List of Raspberry UID to create 
+clients:
+  - client1
+
+
 ...

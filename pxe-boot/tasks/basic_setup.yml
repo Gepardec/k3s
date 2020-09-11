@@ -2,7 +2,6 @@
   set_fact:
     configure_network: true
     install_additional_packages: "{{ INSTALL_ADDITIONAL_PACKAGES }}"
-    is_vagrant: "{{ IS_VAGRANT | default(false) }}"
 
 - name: Prepare filesystem
   command: raspi-config nonint do_expand_rootfs
@@ -22,13 +21,17 @@
 
 - name: create directory for filesystem Copy for PXE-Clients
   file:
-    path: /nfs/client1
+    path: /nfs/{{ item }}
     state: directory
   become: true
+  with_items:
+  - "{{ clients }}"
 
 - name: create Filesystem Copy for PXE-Clients
-  command: rsync -xa --progress --exclude /nfs / /nfs/client1
+  command: rsync -xa --progress --exclude /nfs / /nfs/{{ item }}
   become: true
+  with_items:
+    - "{{ clients }}"
 
 - name: regenerate ssh keys on client fs - copy script
   copy:
@@ -37,8 +40,10 @@
     mode: 0700
 
 - name: regenerate ssh keys on client fs - execute script
-  command: /tmp/regenerate_ssh_keys.sh
+  command: /tmp/regenerate_ssh_keys.sh {{ item }}
   become: true
+  with_items:
+    - {{ clients }}
 
 - name: Install required packages
   package:
