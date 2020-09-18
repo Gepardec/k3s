@@ -10,7 +10,7 @@ additional_packages:
 
 # List of Raspberry UID to create
 clients:
-  - client1
-
+  - base
+  - raspberry_dummy_id
 
 ...

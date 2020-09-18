@@ -2,3 +2,4 @@
 - hosts: pxe
   roles:
     - pxe-boot
+  become: true

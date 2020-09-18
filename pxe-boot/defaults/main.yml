@@ -9,19 +9,9 @@ required_packages:
   - tftpd-hpa
   - tftpd
   - pxelinux
-  - syslinux
-  - rsync
-  - unzip
+  - syslinux-common
+  - syslinux-efi
   - nfs-kernel-server
-
-# pxe files
-pxeserver_files:
-  - /usr/lib/syslinux/memdisk
-  - /usr/lib/syslinux/modules/bios/menu.c32
-  - /usr/lib/PXELINUX/pxelinux.0
-
-image_download_directory:
-  - /pxe_images/
 
 client_root_command: "/dev/nfs nfsroot={{ ansible_eth0.ipv4.address }}:/nfs/client1,vers=4.1,proto=tcp rw ip=dhcp rootwait elevator=deadline"
 

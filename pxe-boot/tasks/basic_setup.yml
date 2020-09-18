@@ -5,33 +5,24 @@
 
 - name: Prepare filesystem
   command: raspi-config nonint do_expand_rootfs
-  become: true
-  when: ( install_additional_packages == false)
 
 - name: reboot for filesystem changes to take effect
   reboot:
-  become: true
-  when: ( install_additional_packages == false)
 
 - name: install rsync
   package:
     name: rsync
     state: present
-  become: yes
 
 - name: create directory for filesystem Copy for PXE-Clients
   file:
     path: /nfs/{{ item }}
     state: directory
-  become: true
   with_items:
   - "{{ clients }}"
 
 - name: create Filesystem Copy for PXE-Clients
-  command: rsync -xa --progress --exclude /nfs / /nfs/{{ item }}
-  become: true
-  with_items:
-    - "{{ clients }}"
+  command: rsync -xa --progress --exclude /nfs / /nfs/client1
 
 - name: regenerate ssh keys on client fs - copy script
   copy:
@@ -40,16 +31,12 @@
     mode: 0700
 
 - name: regenerate ssh keys on client fs - execute script
-  command: /tmp/regenerate_ssh_keys.sh {{ item }}
-  become: true
-  with_items:
-    - {{ clients }}
+  command: /tmp/regenerate_ssh_keys.sh
 
 - name: Install required packages
   package:
     name: "{{ item }}"
     state: present
-  become: yes
   with_items:
     - "{{ required_packages }}"
 
@@ -57,7 +44,6 @@
   package:
     name: "{{ item }}"
     state: present
-  become: yes
   with_items:
     - "{{ additional_packages }}"
   when: ( install_additional_packages == true )

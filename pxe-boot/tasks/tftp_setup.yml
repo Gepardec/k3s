@@ -5,13 +5,15 @@
     path: "{{ tftp_root_directory }}"
     state: directory
     mode: '777'
-  tags: tftpserver
+  tags:
+    - tftpserver
 
 - name: Template tftpd config
   template:
     src: tftp.tftpd-hpa
     dest: /etc/default/tftpd-hpa
   notify: restart tftpd-hpa
-  tags: tftpserver
+  tags:
+    - tftpserver
 
 ...
