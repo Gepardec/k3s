@@ -7,10 +7,11 @@
     remote_src: true
 
 - name: Export filesystems
-  command: "echo '/nfs/client1 *(rw,sync,no_subtree_check,no_root_squash)' | sudo tee -a /etc/exports"
-
-- name: Export tftp-root directory filesystem
-  command: "echo '{{ tftp_root_directory }} *(rw,sync,no_subtree_check,no_root_squash)' | sudo tee -a /etc/exports"
+  blockinfile:
+    path: /etc/exports
+    block: |
+      /nfs/client1 *(rw,sync,no_subtree_check,no_root_squash)
+      {{ tftp_root_directory }} *(rw,sync,no_subtree_check,no_root_squash)
 
 - name: configure rpcbind service
   service:
