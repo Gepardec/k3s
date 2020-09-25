@@ -1,0 +1,53 @@
+---
+# tasks file for iptables
+
+  - name: install iptables
+    apt:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - iptables
+      - iptables-persistent
+
+  - name: accept loopback interface input
+    iptables:
+      chain: INPUT
+      in_interface: "{{ item }}"
+      jump: ACCEPT
+    with_items:
+      - eth0
+
+  - name: do stuff
+    iptables:
+      chain: INPUT
+      jump: ACCEPT
+      ctstate: ESTABLISHED,RELATED
+      match:
+        - state
+
+  - name: do stuff22
+    iptables:
+      jump: MASQUERADE
+      out_interface: wlan0
+      chain: POSTROUTING
+      table: nat
+
+  - name: do stuff2
+    iptables:
+      jump: ACCEPT
+      ctstate: ESTABLISHED,RELATED 
+      match:
+        - state
+      chain: FORWARD
+      out_interface: eth0
+      in_interface: wlan0
+
+  - name: do stuff3
+    iptables:
+      jump: ACCEPT
+      chain: FORWARD
+      out_interface: eth0
+      in_interface: wlan0
+  
+  - name: do stuff232
+    shell: iptables-save > /etc/iptables/rules.v4
