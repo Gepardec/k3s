@@ -4,17 +4,17 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: dhcp_debian10
+  - name: dhcp
     image: geerlingguy/docker-debian10-ansible
     command: /sbin/init
     privileged: true
     docker_networks:
     - name: 'k3s'
       ipam_config:
-        - subnet: '10.0.2.0/24'
+        - subnet: '10.0.0.0/24'
     networks:
       - name: "k3s"
-        ipv4_address: '10.0.2.20'
+        ipv4_address: '10.0.0.20'
     pre_build_image: true
     tmpfs:
       - /run

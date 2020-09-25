@@ -71,8 +71,17 @@
   tags: dhcp
 
 - name: "Ensure service is {{ dhcp_global_server_state | default('started') }}"
+  when: ansible_os_family == 'CentOS'
   service:
     name: "{{ dhcp_service }}"
     state: "{{ dhcp_global_server_state | default('started') }}"
     enabled: true
+  tags: dhcp
+
+- name: "Ensure service is {{ dhcp_global_server_state | default('started') }}"
+  when: ansible_os_family == 'Debian'
+  sysvinit:
+      name: "{{ dhcp_service }}"
+      state: restarted
+      enabled: yes
   tags: dhcp
