@@ -4,6 +4,7 @@
   roles:
   - {role: sshsetuppi}
 
-- hosts: pisecure
-  roles:
-    - {role: sshsetuppi}
+#- hosts: pisecure
+#  roles:
+#    - {role: setupsecuredpi}
+
