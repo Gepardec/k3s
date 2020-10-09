@@ -1,0 +1,6 @@
+---
+# defaults file for bastion
+dhcpcd_conf_location: "/etc/dhcpcd.conf"
+dhcpcd_interface: "eth0"
+dhcpcd_dns: "10.0.0.1"
+dhcpcd_router: "10.0.0.1"
