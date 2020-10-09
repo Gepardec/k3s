@@ -15,7 +15,7 @@
       dhcp_global_domain_name_servers:
         - 8.8.8.8
         - 9.9.9.9
-      
+      dhcp_interface: eth0      
       dhcp_subnets:
         - ip: 10.0.0.0
           netmask: 255.255.255.0
