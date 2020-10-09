@@ -45,6 +45,13 @@
     path: "/etc/ssh/ssh_host_ecdsa_key.pub"
     state: absent
 
+- name: generate ssh folder for new user
+  become: true
+  file:
+    path: "/home/{{newusername}}/.ssh/"
+    state: directory
+    owner: "{{newusername}}"
+
 - name: generate key for remote access
   become: true
   openssh_keypair:
@@ -55,6 +62,7 @@
   register: remoteaccesskey
 
 - name: set authorized key
+  become: true
   authorized_key:
     user: "{{newusername}}"
     state: present
