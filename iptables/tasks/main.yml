@@ -16,15 +16,7 @@
       line: 'net.ipv4.ip_forward=1'
       state: present
       create: false
-    tags: iptables
-
-  - name: enable ipv4 forwarding without reboot
-    lineinfile:
-      path: "{{ ip_forward_tmp_location }}"
-      regexp: '0'
-      line: '1'
-      state: present
-      create: true
+    notify: restart_pi
     tags: iptables
 
   - name: accept loopback interface input

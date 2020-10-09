@@ -9,7 +9,7 @@
       - "bertvv.bind"
     vars:
       #Bastion
-      ip_address: 10.0.0.1
+      static_ip_address: "10.0.0.1/24"
       #DHCP
       dhcp_global_authoritative: authoritative
       dhcp_global_default_lease_time: 28800   # 8hrs

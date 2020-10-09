@@ -1,3 +1,4 @@
 ---
 # handlers file for bastion
-restart_pi:
+- name: restart_pi
+  reboot:

@@ -1,2 +1,4 @@
 ---
 # handlers file for iptables
+- name: restart_pi
+  reboot:
