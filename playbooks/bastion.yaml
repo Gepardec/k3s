@@ -1,0 +1,33 @@
+---
+  - hosts: bastion
+    gather_facts: true
+    become: true
+    tasks:
+      - name: "Include ansible role"
+        include_role:
+          name: "dhcp"
+    vars:
+      dhcp_global_authoritative: authoritative
+      dhcp_global_default_lease_time: 28800   # 8hrs
+      dhcp_global_max_lease_time: 43200       # 12 hrs
+      dhcp_global_routers: 10.0.0.1
+      dhcp_global_domain_name: example.com
+      dhcp_global_domain_name_servers:
+        - 8.8.8.8
+        - 9.9.9.9
+      dhcp_interface: eth0      
+      dhcp_subnets:
+        - ip: 10.0.0.0
+          netmask: 255.255.255.0
+          domain_name_servers:
+            - 10.0.0.1
+          range_begin: 10.0.0.70
+          range_end: 10.0.0.250
+  
+      dhcp_hosts:
+        - name: raspberrypi
+          mac: 'dc:a6:32:be:c7:a5'
+          ip: 10.0.0.1
+  
+      dhcp6_enable: false
+...

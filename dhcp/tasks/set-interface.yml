@@ -1,0 +1,25 @@
+# roles/dhcp/tasks/set-interface.yml
+# This playbook adjusts a required dhcp package "debian10" file,
+# specific to debian-like installs
+---
+
+- debug:
+    var: interface
+    verbosity: 1
+- debug:
+    var: dhcp_subnets
+    verbosity: 1
+- debug:
+    var: hostvars[inventory_hostname]['ansible_%s' | format(interface)].ipv4.network
+    verbosity: 1
+
+- name: set dhcp_interface
+  set_fact:
+    dhcp_interface: "{{ interface }}"
+  when: subnet.ip == hostvars[inventory_hostname]['ansible_%s' | format(interface)].ipv4.network
+  with_items: "{{ dhcp_subnets }}"
+  loop_control:
+    loop_var: subnet
+  tags: dhcp
+
+

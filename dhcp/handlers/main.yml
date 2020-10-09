@@ -1,0 +1,20 @@
+# roles/dhcp/handlers/main.yml
+---
+
+- name: restart dhcp
+  when: ansible_os_family == 'Debian'
+  sysvinit:
+    name: "{{ dhcp_service }}"
+    state: restarted
+    enabled: yes
+
+- name: restart dhcp
+  when: ansible_os_family == 'CentOS'
+  service:
+    name: "{{ dhcp_service }}"
+    state: "{{ (dhcp_global_server_state | default('started') == 'started') | ternary('restarted', 'stopped') }}"
+
+- name: restart apparmor
+  service:
+    name: apparmor
+    state: restarted
