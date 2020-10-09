@@ -5,7 +5,10 @@
     tasks:
       - name: "Include ansible role"
         include_role:
-          name: "dhcp"
+          name: "{{ item }}"
+        with_items: 
+        - "dhcp"
+        - "iptables"
     vars:
       dhcp_global_authoritative: authoritative
       dhcp_global_default_lease_time: 28800   # 8hrs

@@ -93,3 +93,30 @@
       state: restarted
       enabled: yes
   tags: dhcp
+
+- name: "Create isc-dhcp-service definition file"
+  template:
+    src: "isc-dhcp-server.service.j2"
+    dest: "{{ dhcp_service_file_location }}"
+  become: true
+  register: result
+
+- name: "Reload system daemon"
+  systemd:
+    daemon_reload: true
+  become: true
+  when: result.changed
+
+- name: "Disable the isc-dhcp-server"
+  service:
+    enabled: false
+    name: "isc-dhcp-server"
+  become: true
+  when: result.changed
+
+- name: "Enable the isc-dhcp-server"
+  service:
+    enabled: true
+    name: "isc-dhcp-server"
+  become: true
+  when: result.changed
