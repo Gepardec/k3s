@@ -20,11 +20,12 @@
   tags: dhcp
 
 - include_tasks: set-interface.yml
-  when: ansible_os_family == 'Debian'
+  when:
+    - ansible_os_family == 'Debian'
+    - dhcp_interface is not defined
   with_items: "{{ ansible_interfaces }}"
   loop_control:
     loop_var: interface
-  when: dhcp_interface is not defined
   tags: dhcp
 
 - name: Set Interface | Set a default listening interface
