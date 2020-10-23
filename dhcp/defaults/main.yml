@@ -1,0 +1,11 @@
+# roles/dhcp/defaults/main.yml
+---
+
+dhcp_apparmor_fix: true
+dhcp_global_includes_missing: false
+dhcp_packages_state: "present"
+dhcp_subnets: []
+#dhcp_interface: eth0
+dhcp_restart_policy: on-failure
+dhcp_restart_time: 5
+dhcp_service_file_location: /etc/systemd/system/isc-dhcp-server

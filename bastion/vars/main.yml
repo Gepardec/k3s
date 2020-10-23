@@ -1,0 +1,3 @@
+---
+# vars file for bastion
+ip_address: ""

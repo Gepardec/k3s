@@ -1,0 +1,79 @@
+---
+  - hosts: bastion
+    gather_facts: true
+    become: true
+    roles:
+      - "bastion"
+      - "dhcp"
+      - "iptables"
+      - "bertvv.bind"
+    vars:
+      #Bastion
+      static_ip_address: "10.0.0.1/24"
+      #DHCP
+      dhcp_global_authoritative: authoritative
+      dhcp_global_default_lease_time: 28800   # 8hrs
+      dhcp_global_max_lease_time: 43200       # 12 hrs
+      dhcp_global_routers: 10.0.0.1
+      dhcp_global_domain_name: example.com
+      dhcp_global_domain_name_servers:
+        - 8.8.8.8
+        - 9.9.9.9
+      dhcp_interface: eth0      
+      dhcp_subnets:
+        - ip: 10.0.0.0
+          netmask: 255.255.255.0
+          domain_name_servers:
+            - 10.0.0.1
+          range_begin: 10.0.0.70
+          range_end: 10.0.0.250
+  
+      dhcp_hosts:
+        - name: raspberrypi
+          mac: 'dc:a6:32:be:c7:a5'
+          ip: 10.0.0.1
+  
+      dhcp6_enable: false
+
+      #bertvv.bind
+      bind_allow_query:
+        - any
+      bind_listen_ipv4:
+        - any
+      bind_listen_ipv6:
+        - any
+      bind_forwarders:
+        - '8.8.8.8'
+        - '8.8.4.4'
+      bind_recursion: true
+      bind_query_log: 'data/query.log'
+      bind_check_names: 'master ignore'
+      bind_zone_master_server_ip: "10.0.0.1"
+      bind_zone_minimum_ttl: "2D"
+      bind_zone_ttl: "2W"
+      bind_zone_time_to_refresh: "2D"
+      bind_zone_time_to_retry: "2H"
+      bind_zone_time_to_expire: "2W"
+      bind_zones:
+        - name: 'k3s'
+          networks:
+            - '10.0.0'
+          primaries:
+            - '10.0.0.1'
+          hostmaster_email: "office@geaprdec.com"
+          hosts:
+            - name: "*.apps"
+              ip: 192.168.86.120
+            - name: bastion
+              ip: 10.0.0.1
+            - name: master-0
+              ip: 192.168.86.110
+            - name: worker-0
+              ip: 192.168.86.120
+            - name: worker-1
+              ip: 192.168.86.121
+            - name: worker-2
+              ip: 192.168.86.122
+            - name: worker-3
+              ip: 192.168.86.123
+...

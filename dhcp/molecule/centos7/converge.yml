@@ -1,0 +1,61 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  tasks:
+    - name: "Include dhcp"
+      include_role:
+        name: "dhcp"
+  vars:
+    dhcp_global_default_lease_time: 28800   # 8hrs
+    dhcp_global_max_lease_time: 43200       # 12 hrs
+    dhcp_global_subnet_mask: 255.255.255.0
+    dhcp_global_broadcast_address: 10.0.0.255
+    dhcp_global_routers: 10.0.0.20
+    dhcp_global_domain_name: "dhcp.local"
+    dhcp_global_domain_name_servers:
+      - 8.8.8.8
+      - 9.9.9.9
+    # dhcp_global_bootp: ignore
+    # dhcp_global_booting: ignore
+    # dhcp_global_next_server: 10.0.0.20
+    # dhcp_global_filename: boot.img
+
+    # dhcp_global_classes:
+    #   - name: vbox
+    #     match: 'match if binary-to-ascii(16,8,":",substring(hardware, 1, 3)) = "8:0:27"'
+
+    dhcp_subnets:
+      - ip: 10.0.0.0
+        netmask: 255.255.255.0
+        domain_name_servers:
+          - 10.0.0.10
+        range_begin: 10.0.0.70
+        range_end: 10.0.0.250
+
+    dhcp_hosts:
+      - name: dns
+        mac: '00:de:ad:be:ef:10'
+        ip: 10.0.0.10
+        routers: 10.0.0.20
+      - name: dhcp
+        mac: '00:de:ad:be:ef:20'
+        ip: 10.0.0.20
+      - name: pxe
+        mac: '00:de:ad:be:ef:30'
+        ip: 10.0.0.30
+        routers: 10.0.0.20
+      - name: ntp
+        mac: '00:de:ad:be:ef:40'
+        ip: 10.0.0.40
+        routers: 10.0.0.20
+      - name: bastion
+        mac: '00:de:ad:be:ef:50'
+        ip: 10.0.0.50
+        routers: 10.0.0.20
+      - name: lb
+        mac: '00:de:ad:be:ef:60'
+        ip: 10.0.0.60
+        routers: 10.0.0.20
+
+    dhcp6_enable: false

@@ -1,0 +1,28 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: dhcp
+    image: geerlingguy/docker-centos7-ansible
+    command: /sbin/init
+    privileged: true
+    docker_networks:
+    - name: 'k3s'
+      ipam_config:
+        - subnet: '10.0.0.0/24'
+    networks:
+      - name: "k3s"
+        ipv4_address: '10.0.0.20'
+    pre_build_image: true
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+provisioner:
+  name: ansible
+verifier:
+  name: testinfra
+#  name: ansible
