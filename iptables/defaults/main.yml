@@ -1,4 +1,0 @@
----
-# defaults file for iptables
-sysctl_conf_location: '/etc/sysctl.conf'
-ip_forward_tmp_location: '/proc/sys/net/ipv4/ip_forward'
