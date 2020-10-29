@@ -1,0 +1,49 @@
+= Choosing a method to setup a RPi PXE Sever
+
+== linuxconfig.org
+
+* looks complete and concise
+* last modified on 23 September 2020
+* https://linuxconfig.org/how-to-configure-a-raspberry-pi-as-a-pxe-boot-server
+
+== Steps
+
+=== Project root
+/mnt/data/netboot
+
+=== image dir
+/mnt/data/arm64/rpios/1
+
+1 because this will be the dir for the RPi number one.
+
+This is where the images from the .iso go.
+How do I get the files from an .img?
+Raspian is now officially Raspberry Pi OS.
+
+=== Create the boot menu
+
+inside the tftp root:
+/mnt/data/netboot
+Create pxelinux.cfg as a directory.
+In the pxelinux.cfg directory create a file named 'default'.
+
+== Log
+
+SSH to the Pi acting as a server(192.168.0.10).
+Create Ansible role:
+----
+cd roles
+molecule init role setuppxeserver
+----
+
+organize tasks in the tasks/main.yml:
+----
+- name: Setup directories
+import_tasks: ../tasks/directories.yml
+
+- name: Copy files from image
+import_tasks: ../tasks/copyimage.yml
+
+- name: Create the default PXE bootfile
+import_tasks: ../tasks/createbootfile.yml
+----
