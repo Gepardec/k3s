@@ -1,6 +1,6 @@
 ---
 
-- hosts: pi
+- hosts: pxeserver, pi
   roles:
   - {role: sshsetuppi}
 

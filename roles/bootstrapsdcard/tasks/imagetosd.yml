@@ -17,7 +17,11 @@
 
 - name: Erase target drive(SD) and copy. This can take some time.
   become: yes
-  shell: dd if={{workingdir}}{{unzipped}}{{image}} of={{sdcardpath}} status=progress
+  shell: dd if={{workingdir}}{{unzipped}}{{image}} of={{sdcardpath}} bs=8K && sync
+  register: opresult
+
+- debug:
+    msg: "{{opresult}}"
 
 - name: restart gvfs-udisks2-volume-monitor (trouble shoot mounting partitions)
   command: systemctl --user restart gvfs-udisks2-volume-monitor
@@ -36,38 +40,38 @@
     path: "{{ sdbootpath }}ssh"
     state: touch
 
-- name: config pi with static ip 192.168.0.10 line 1/5
+- name: config pi with static ip {{targetip}} line 1/5
   become: yes
   lineinfile:
     path: "{{ dhcpconfpath }}"
     insertafter: '^# Example\sstatic\sIP\sconfiguration:'
     line: interface eth0
 
-- name: config pi with static ip 192.168.0.10 line 2/5
+- name: config pi with static ip {{targetip}} line 2/5
   become: yes
   lineinfile:
     path: "{{ dhcpconfpath }}"
     insertafter: '^interface\seth0'
-    line: static ip_address=192.168.0.10/24
+    line: static ip_address={{targetip}}/24
 
-- name: config pi with static ip 192.168.0.10 line 3/5
+- name: config pi with static ip {{targetip}} line 3/5
   become: yes
   lineinfile:
     path: "{{ dhcpconfpath }}"
     insertafter: '^static\sip_address='
     line: static ip6_address=fd51:42f8:caae:d92e::ff/64
 
-- name: config pi with static ip 192.168.0.10 line 4/5
+- name: config pi with static ip {{targetip}} line 4/5
   become: yes
   lineinfile:
     path: "{{ dhcpconfpath }}"
     insertafter: '^static\sip6_address='
-    line: static routers=192.168.0.1
+    line: static routers={{staticrouters}}
 
-- name: config pi with static ip 192.168.0.10 line 5/5
+- name: config pi with static ip {{targetip}} line 5/5
   become: yes
   lineinfile:
     path: "{{ dhcpconfpath }}"
     insertafter: '^static\srouters='
-    line: static domain_name_servers=192.168.0.1 8.8.8.8 fd51:42f8:caae:d92e::1
+    line: static domain_name_servers={{staticrouters}} 8.8.8.8 fd51:42f8:caae:d92e::1
 

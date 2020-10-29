@@ -1,8 +1,8 @@
 ---
 # tasks file
 
-- name: Regenerate host ssh keys
-  import_tasks: ../tasks/regenhostsshkey.yml
-
 - name: Create New User
   import_tasks: ../tasks/createuser.yml
+
+- name: Regenerate host ssh keys
+  import_tasks: ../tasks/regenhostsshkey.yml

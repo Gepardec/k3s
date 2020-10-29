@@ -1,0 +1,10 @@
+---
+# tasks file for setuppxeserver
+- name: Setup directories
+  import_tasks: ../tasks/getosimage.yml
+
+- name: Copy files from image
+  import_tasks: ../tasks/imagetosd.yml
+
+- name: Create the default PXE bootfile
+  import_tasks: ../tasks/imagetosd.yml

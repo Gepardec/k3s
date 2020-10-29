@@ -12,3 +12,6 @@ workingdir: /home/{{username.stdout}}/Downloads/
 sdbootpath: /run/media/{{username.stdout}}/boot/
 sdrootfspath: /run/media/{{username.stdout}}/rootfs/
 dhcpconfpath: /run/media/{{username.stdout}}/rootfs/etc/dhcpcd.conf
+
+targetip: 192.168.0.11
+staticrouters: 192.168.0.1
