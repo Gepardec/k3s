@@ -38,12 +38,29 @@ molecule init role setuppxeserver
 
 organize tasks in the tasks/main.yml:
 ----
+- name: Install prerequisites
+  import_tasks: ../tasks/prerequisites.yml
+
 - name: Setup directories
-import_tasks: ../tasks/directories.yml
+  import_tasks: ../tasks/directories.yml
 
 - name: Copy files from image
-import_tasks: ../tasks/copyimage.yml
+  import_tasks: ../tasks/copyimage.yml
 
 - name: Create the default PXE bootfile
-import_tasks: ../tasks/createbootfile.yml
+  import_tasks: ../tasks/createbootfile.yml
 ----
+
+Sharing the laptop inet-connection via the router didn't work.
+Back to using direct latop to RPi ethernet connection to shared inet for downloads.
+
+https://fedoramagazine.org/internet-connection-sharing-networkmanager/[inet connection sharing]
+
+Using the above link and:
+
+- setting the router to switch mode and change its ip from x.x.x.1
+- set the iprange with nmcli and not via the fedora network settings
+
+the laptop inet connection can be shared via the router to both RPis
+
+https://www.howtogeek.com/174419/how-to-reuse-your-old-wi-fi-router-as-a-network-switch/[Router as switch]
