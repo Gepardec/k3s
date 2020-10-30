@@ -1,0 +1,89 @@
+---
+
+- name: Include vars from vault
+  include_vars:
+    file: "{{ vaultfilepath }}"
+
+- name: regenerate SSH RSA key
+  become: true
+  openssh_keypair:
+    path: "/etc/ssh/ssh_host_rsa_key"
+    type: rsa
+    size: 4096
+    state: present
+    force: yes
+
+- name: regenerate SSH ED25519 key
+  become: true
+  openssh_keypair:
+    path: "/etc/ssh/ssh_host_ed25519_key"
+    type: ed25519
+    state: present
+    force: yes
+
+- name: remove SSH DSA key 1/2
+  become: true
+  file:
+    path: "/etc/ssh/ssh_host_dsa_key"
+    state: absent
+
+- name: remove SSH DSA key 2/2
+  become: true
+  file:
+    path: "/etc/ssh/ssh_host_dsa_key.pub"
+    state: absent
+
+- name: remove SSH ECDSA key 1/2
+  become: true
+  file:
+    path: "/etc/ssh/ssh_host_ecdsa_key"
+    state: absent
+
+- name: remove SSH ECDSA key 2/2
+  become: true
+  file:
+    path: "/etc/ssh/ssh_host_ecdsa_key.pub"
+    state: absent
+
+- name: generate ssh folder for new user
+  become: true
+  file:
+    path: "/home/{{newusername}}/.ssh/"
+    state: directory
+    owner: "{{newusername}}"
+
+- name: generate key for remote access
+  become: true
+  openssh_keypair:
+    path: "/home/{{newusername}}/.ssh/remoteaccesskey"
+    type: ed25519
+    state: present
+    force: no
+  register: remoteaccesskey
+
+- name: set authorized key
+  become: true
+  authorized_key:
+    user: "{{newusername}}"
+    state: present
+    key: "{{remoteaccesskey.public_key}}"
+
+- name: copy private key from host for later use
+  become: true
+  fetch:
+    src: "/home/{{newusername}}/.ssh/remoteaccesskey"
+    dest: "./sshkeys/"
+
+- name: copy public key from host for later use
+  become: true
+  fetch:
+    src: "/home/{{newusername}}/.ssh/remoteaccesskey.pub"
+    dest: "./sshkeys/"
+
+- name: remove private key
+  become: true
+  file:
+    path: "/home/{{newusername}}/.ssh/remoteaccesskey"
+    state: absent
+
+

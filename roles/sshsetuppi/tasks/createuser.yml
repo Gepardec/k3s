@@ -1,3 +1,5 @@
+---
+
 - name: Include vars from vault
   include_vars:
     file: "{{ vaultfilepath }}"
@@ -6,5 +8,7 @@
   become: yes
   user:
     name: "{{newusername}}"
-    password: "{{newpassword}}"
+    password: "{{newpassword | password_hash('sha512')}}"
+    generate_ssh_key: yes
+    append: yes
     groups: pi, adm, dialout, cdrom, sudo, audio, video, plugdev, games, users, input, netdev, spi, i2c, gpio

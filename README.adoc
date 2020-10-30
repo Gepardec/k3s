@@ -21,4 +21,4 @@ include::pxe-boot/README.adoc[leveloffset=+3]
 == Personal Logs
 
 === Mario's Log
-include::docs/log-mario.adoc[leveloffset=+3]
+include::docs/source/logs/mario.rst[leveloffset=+3]

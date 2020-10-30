@@ -1,5 +1,8 @@
 ---
-# tasks file for sshsetuppi
+# tasks file
 
 - name: Create New User
   import_tasks: ../tasks/createuser.yml
+
+- name: Regenerate host ssh keys
+  import_tasks: ../tasks/regenhostsshkey.yml

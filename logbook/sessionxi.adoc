@@ -1,0 +1,66 @@
+= Choosing a method to setup a RPi PXE Sever
+
+== linuxconfig.org
+
+* looks complete and concise
+* last modified on 23 September 2020
+* https://linuxconfig.org/how-to-configure-a-raspberry-pi-as-a-pxe-boot-server
+
+== Steps
+
+=== Project root
+/mnt/data/netboot
+
+=== image dir
+/mnt/data/arm64/rpios/1
+
+1 because this will be the dir for the RPi number one.
+
+This is where the images from the .iso go.
+How do I get the files from an .img?
+Raspian is now officially Raspberry Pi OS.
+
+=== Create the boot menu
+
+inside the tftp root:
+/mnt/data/netboot
+Create pxelinux.cfg as a directory.
+In the pxelinux.cfg directory create a file named 'default'.
+
+== Log
+
+SSH to the Pi acting as a server(192.168.0.10).
+Create Ansible role:
+----
+cd roles
+molecule init role setuppxeserver
+----
+
+organize tasks in the tasks/main.yml:
+----
+- name: Install prerequisites
+  import_tasks: ../tasks/prerequisites.yml
+
+- name: Setup directories
+  import_tasks: ../tasks/directories.yml
+
+- name: Copy files from image
+  import_tasks: ../tasks/copyimage.yml
+
+- name: Create the default PXE bootfile
+  import_tasks: ../tasks/createbootfile.yml
+----
+
+Sharing the laptop inet-connection via the router didn't work.
+Back to using direct latop to RPi ethernet connection to shared inet for downloads.
+
+https://fedoramagazine.org/internet-connection-sharing-networkmanager/[inet connection sharing]
+
+Using the above link and:
+
+- setting the router to switch mode and change its ip from x.x.x.1
+- set the iprange with nmcli and not via the fedora network settings
+
+the laptop inet connection can be shared via the router to both RPis
+
+https://www.howtogeek.com/174419/how-to-reuse-your-old-wi-fi-router-as-a-network-switch/[Router as switch]

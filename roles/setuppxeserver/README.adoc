@@ -1,0 +1,21 @@
+= setuppxeserver
+
+This role is for setting up a pxeserver on a raspberry pi 4.
+
+== Principle of Operation
+- Install prereqs
+- Create directories
+- Copy files from image to folder
+- Create bootmenu
+- For dev we will also use dnsmasq
+- A dns server will be present in prod
+
+== Requirements
+
+- a `password.yml` that contains the password for the ansible vault called secret.
+- an ansible vault called `secret` containing the become(sudo) password. +
+__ansible-vault create secret__
+
+== Example Usage
+
+ansible-playbook playbook-setuppxeserver.yml -i ./hosts.yml --vault-password-file roles/bootstrapsdcard/password.yml

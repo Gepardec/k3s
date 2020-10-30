@@ -1,0 +1,9 @@
+---
+- name: Install prereqs
+  become: yes
+  package:
+    name:
+      - dnsmasq
+      - pxelinux
+      - syslinux-efi
+    state: present

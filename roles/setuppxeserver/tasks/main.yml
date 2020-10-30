@@ -1,0 +1,13 @@
+---
+# tasks file for setuppxeserver
+- name: Install prerequisites
+  import_tasks: ../tasks/prerequisites.yml
+
+- name: Setup directories
+  import_tasks: ../tasks/directories.yml
+
+- name: Copy files from image
+  import_tasks: ../tasks/copyimage.yml
+
+- name: Create the default PXE bootfile
+  import_tasks: ../tasks/createbootfile.yml

@@ -4,7 +4,7 @@ Connect to a ssh enabled rpi with a given ip.
 
 == Typical Usage
 ....
-ansible-playbook sshsetuppi-playbook.yml -i ./hosts.yml --vault-password-file roles/sshsetuppi/password.yml
+ansible-playbook playbook-sshsetuppi.yml -i ./hosts.yml --vault-password-file roles/sshsetuppi/password.yml
 ....
 
 == Requirements

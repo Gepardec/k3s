@@ -1,0 +1,30 @@
+= Status of the PXE-Module:
+
+== Automatic SD card generation
+
+* static IP - done
+* SSH enabled - done
+
+done, static ip can now be set as an ansible variable
+if dd 'writes' with 3GBs and no files appear on the card you might need to reboot the machine.
+
+== Setting up a new user
+
+* regenerating host SSH-Keys - done
+* creating new user from vault file - done
+* deleting pi user
+* forcing passwordless access
+
+== Choosing setup procedure for pxe server
+
+* collecting methods (1/4)
+* testing method (0/4)
+* if we get one method and are happy its enough
+
+== Hardware
+
+Previously the dev setup was one RPi connected via lan to the dev machine.
+For PXE dev I use two RPis and all machines are connected to a router(WRT54GL).
+That way I can connect to both pi via ssh.
+Additionally, I can monitor the network traffic with wireshark.
+

@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include setuppxeserver"
+      include_role:
+        name: "setuppxeserver"

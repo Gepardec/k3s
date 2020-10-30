@@ -1,0 +1,5 @@
+---
+
+- hosts: pxeserver
+  roles:
+    - {role: setuppxeserver}

@@ -4,7 +4,6 @@ imagename: 2020-05-27-raspios-buster-arm64.zip
 image: 2020-05-27-raspios-buster-arm64.img
 imagepath: https://downloads.raspberrypi.org/raspios_arm64/images/raspios_arm64-2020-05-28/
 
-
 unzipped: unzipped/
 sdcardpath: /dev/mmcblk0
 vaultfilepath: ../secret
@@ -13,3 +12,6 @@ workingdir: /home/{{username.stdout}}/Downloads/
 sdbootpath: /run/media/{{username.stdout}}/boot/
 sdrootfspath: /run/media/{{username.stdout}}/rootfs/
 dhcpconfpath: /run/media/{{username.stdout}}/rootfs/etc/dhcpcd.conf
+
+targetip: 192.168.0.11
+staticrouters: 192.168.0.1

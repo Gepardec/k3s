@@ -33,19 +33,6 @@ You need to set the ANSIBLE_VAULT_PASSWORD_FILE in the molecule/default/molecule
 Point to a file containing the ansible-vault password.
 All the other config is in vars/main.yml.
 
-== Dependencies
+== Example Usage
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
-
-== Example Playbook
-
-----
-molecule converge
-----
-
-== License
-
-
-== Author Information
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+ansible-playbook playbook-bootstrapsdcard.yml --vault-password-file roles/bootstrapsdcard/password.yml
