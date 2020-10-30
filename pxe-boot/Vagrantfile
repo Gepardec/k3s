@@ -5,8 +5,10 @@
 #########################
 $CPU = 1
 $MEMORY = 1024
+DISKSIZE = '75GB'
+# vagrant plugin install vagrant-disksizevim
 $CPUEXECUTIONCAP = 50 # does not work with hyper-v
-$IP = "192.168.0.10"   # does not work with hyper-v # https://www.vagrantup.com/docs/hyperv/limitations.html
+$IP = "192.169.0.10"   # does not work with hyper-v # https://www.vagrantup.com/docs/hyperv/limitations.html
 $BASEOS = "gvfoster/raspbian"
 $SSH=2210
 #########################
@@ -18,6 +20,7 @@ Vagrant.configure("2") do |config|
     v.memory = $MEMORY
     v.cpus = $CPU
     v.customize ["modifyvm", :id, "--cpuexecutioncap", $CPUEXECUTIONCAP]
+    v.disksize.size=$DISKSIZE
   end
 
   config.vm.provider "hyperv" do |v|

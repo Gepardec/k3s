@@ -1,16 +1,19 @@
 ---
 
 - name: Copy content of boot folder to tftp root directory
-  command: "cp -r /boot/* {{ tftp_root_directory }}/"
+  copy:
+    src: /boot/
+    dest: "{{ tftp_root_directory }}"
+    remote_src: true
 
 - name: Export filesystems
-  command: {{ item }}
-  become: true
-  with_items:
-    - "echo '/nfs/client1 *(rw,sync,no_subtree_check,no_root_squash)' | sudo tee -a /etc/exports"
-    - "echo '{{ tftp_root_directory }} *(rw,sync,no_subtree_check,no_root_squash)' | sudo tee -a /etc/exports"
+  blockinfile:
+    path: /etc/exports
+    block: |
+      /nfs/client1 *(rw,sync,no_subtree_check,no_root_squash)
+      {{ tftp_root_directory }} *(rw,sync,no_subtree_check,no_root_squash)
 
-- name: configre rpcbind service
+- name: configure rpcbind service
   service:
     name: rpcbind
     enabled: true
@@ -21,6 +24,8 @@
     name: nfs-kernel-server
     enabled: true
     state: restarted
+  async: 60
+  poll: 5
 
 - name: replace client fstab
   template:
@@ -31,6 +36,6 @@
   template:
     src: client.fstab
     dest: /nfs/client1/etc/fstab
-
+  become: true
 
 ...
