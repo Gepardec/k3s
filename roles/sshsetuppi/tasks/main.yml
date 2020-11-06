@@ -1,5 +1,8 @@
 ---
 # tasks file
+- name: Update & Full Upgrade
+  become: yes
+  shell: "apt update -y && sudo apt full-upgrade -y"
 
 - name: Create New User
   import_tasks: ../tasks/createuser.yml

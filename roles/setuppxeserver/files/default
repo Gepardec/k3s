@@ -1,0 +1,28 @@
+MENU TITLE  PXE Boot Menu
+DEFAULT     vesamenu.c32
+
+    LABEL local
+        MENU LABEL Boot from local drive
+        LOCALBOOT 0xffff
+
+    MENU BEGIN arm64
+    MENU TITLE arm64
+
+        MENU BEGIN RaspberryPiOS
+        MENU TITLE RaspberryPiOS
+
+            LABEL installgui
+                MENU LABEL ^Graphical install
+                KERNEL vmlinuz
+                APPEND vga=788 initrd=::boot/amd64/debian/10/install.amd/gtk/initrd.gz --- quiet
+
+
+            LABEL install
+                MENU LABEL ^Install
+                KERNEL vmlinuz
+                APPEND vga=788 initrd=::boot/amd64/debian/10/install.amd/initrd.gz --- quiet
+
+            MENU END
+
+    MENU END
+

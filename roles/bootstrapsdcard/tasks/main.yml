@@ -1,6 +1,6 @@
 ---
 # tasks file for bootstrapsdcard
-- name: get the username for vasrs/main.yml
+- name: Get the username for vars/main.yml
   become: false
   local_action: command whoami
   register: username

@@ -1,0 +1,14 @@
+= Session XII
+
+== Setting up the network
+Today I used a different ethernet to usb adapter.
+I had to setup the ethernet connection again see session xi.
+
+== Copying files from Image to Image Directory
+- extract *.img to RPi
+- https://www.youtube.com/watch?v=Vgv4eh1KxVY[How to Mount Raspberry Pi OS Disk Image]
+- https://unix.stackexchange.com/questions/270171/why-offset-specific-in-loop-mount[Why offset specific in loop mount?]
+- mount  the .img file as a loopback device
+    _mount -o ro,loop -t ntfs disk.image /mnt/test_
+- copy files from mount to directory(use rsync, ansible copy didn't work out in this case)
+

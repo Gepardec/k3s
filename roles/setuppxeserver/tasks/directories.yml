@@ -1,0 +1,22 @@
+---
+- name: Create Project Root
+  become: yes
+  file:
+    path: "{{projectroot}}"
+    state: directory
+    mode: '0777'
+
+- name: Create Boot & Bootmenu Directory
+  file:
+    path: "{{projectroot}}boot"
+    state: directory
+    mode: '0777'
+
+- name: Create Image Directory for Pi 1
+  become: yes
+  file:
+    path: "{{imageone}}"
+    state: directory
+    mode: '0777'
+
+

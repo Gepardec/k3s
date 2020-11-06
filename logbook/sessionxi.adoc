@@ -60,7 +60,11 @@ Using the above link and:
 
 - setting the router to switch mode and change its ip from x.x.x.1
 - set the iprange with nmcli and not via the fedora network settings
-
+----
+nmcli connection add type ethernet ifname enp0s20f0u1u2 ipv4.method shared con-name sharewithpi
+nmcli connection modify sharewithpi ipv4.addresses 192.168.0.1/24
+nmcli connection up sharewithpi
+----
 the laptop inet connection can be shared via the router to both RPis
 
 https://www.howtogeek.com/174419/how-to-reuse-your-old-wi-fi-router-as-a-network-switch/[Router as switch]

@@ -1,5 +1,10 @@
 ---
 # tasks file for setuppxeserver
+- name: Get the username for vars/main.yml
+  become: false
+  local_action: command whoami
+  register: username
+
 - name: Install prerequisites
   import_tasks: ../tasks/prerequisites.yml
 

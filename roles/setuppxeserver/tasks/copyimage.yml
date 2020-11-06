@@ -1,0 +1,41 @@
+---
+# sudopassword is stored in an ansible-vault:
+# ansible_sudo_pass: mysudopassword
+- name: Include vars from vault
+  include_vars:
+    file: "{{ vaultfilepath }}"
+
+- name: Create directories
+  become: yes
+  file:
+    path: "{{workingdir}}{{unzipped}}"
+    state: directory
+    mode: '0777'
+
+- name: Create Mountpoint
+  become: yes
+  file:
+    path: "{{mountpoint}}"
+    state: directory
+    mode: '0777'
+
+#- name: Extract Image from loacal machine to RPi, this can take some time
+#  unarchive:
+#    src: "{{localdir}}{{imagename}}"
+#    dest: "{{workingdir}}{{unzipped}}"
+
+- name: UnMount Image, Errors will be ignored(not mounted)
+  become: yes
+  shell: "umount {{mountpoint}}"
+  ignore_errors: yes
+
+- name: Mount Image
+  become: yes
+  shell: "mount -t auto -o loop,offset=272629760 {{workingdir}}{{unzipped}}{{image}} {{mountpoint}}"
+
+- name: Copy files from Image One
+  become: yes
+  shell: rsync -av {{mountpoint}} {{imageone}}
+
+
+

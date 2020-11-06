@@ -1,0 +1,21 @@
+== Session XIII
+
+== kinda PXE
+At least you can now set the client to look in a specific directory for the files.
+Previously the directory had to be named after the SN of the RPi.
+
+== Setting up the RPi 1/
+So lets setup the PXE Client RPi. The directory will be client.
+Then we have a look at whats missing from the PXE-Server and add that step by step.
+
+== Networking cont'
+Had to setup the shared ethernet connection again for w/e reason.
+Delete connection by name:
+----
+nmcli connection delete sharewithpi
+----
+== Setting up the RPi 2/
+* Get a Raspeberry Pi OS version from 20.08.20 or later
+* update && full-upgrade, for latest bootloader etc.
+* Setup bootparameters
+** Lookup directory name
