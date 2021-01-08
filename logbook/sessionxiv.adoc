@@ -1,0 +1,1769 @@
+== Session XIV
+
+== ToDo
+* Deploy bastion host on RPi
+
+== Infra
+We choose to deploy on my home lab instead of work.
+
+The playbook wanted to create ssh keys locally(k3s_id_rsa & .pub) wich didn't work, so I added them manually.
+fun fact: delegate_to: 127.0.0.1 means the command will run on the local machine xD
+
+The k3s-bootstrap-playbook was meant for wifi access to the RPi.
+The available wifi router used the same ip range as the RPi was using on eth0.
+This was problematic for ssh access via the laptop: I could either use my wifi or talk to the pi on eth0.
+We changed the RPi eth0 config for this run to use 192.168.x.x
+
+== Issue I
+The Playbook ran till reboot and hang, maybe the missmatched ip ranges caused the following.
+There was a missing host entry on /etc/hosts wich led to:
+----
+TASK [Gathering Facts] ***********************************************************************************************************************************************************
+fatal: [10.0.0.9]: FAILED! => {"msg": "Timeout (12s) waiting for privilege escalation prompt: "}
+----
+
+The host 127.0.0.1 bastion entry was added manually via eth0/ssh
+
+== Issue II
+dhcp-server didnt come up:
+TASK [ckaserer.dhcp : Ensure service is started] *********************************************************************************************************************************
+fatal: [10.0.0.9]: FAILED! => {"changed": false, "msg": "Failed to restart service: isc-dhcp-server", "rc": 1, "stderr": "Job for isc-dhcp-server.service failed because the control process exited with error code.\nSee \"systemctl status isc-dhcp-server.service\" and \"journalctl -xe\" for details.\n", "stderr_lines": ["Job for isc-dhcp-server.service failed because the control process exited with error code.", "See \"systemctl status isc-dhcp-server.service\" and \"journalctl -xe\" for details."], "stdout": "Starting isc-dhcp-server (via systemctl): isc-dhcp-server.service failed!\n", "stdout_lines": ["Starting isc-dhcp-server (via systemctl): isc-dhcp-server.service failed!"]}
+
+/etc/dhcpcd.conf:
+----
+Interface eth0
+static ip_address=192.168.0.1/24
+#static routers=10.0.0.1
+#static domain_name_servers=10.0.0.1
+----
+
+/etc/dhcp/dhcpd.conf seems to be the culprit because everything still points to the 10.0.0.x iprange
+
+default.config.yml CRTL + R to the rescue
+
+== Profit!
+
+playbook ran through,
+twice!
+
+10.0.0.9                   : ok=45   changed=1    unreachable=0    failed=0    skipped=21   rescued=0    ignored=0
+
+reboot, aaaaand its gone...
+
+seems to be very sensitive to other dhcp servers on the net.
+
+remove rouge dhcp,
+run the playbook,
+reboot,
+and we are back in business!
+
+== ToDo
+* install k3s
+
+I will try with a single RPi4 because i would like to have a bastion host up at the same time.
+If that wont work i can repurpose the bastion host or have a look at some older RIi2s(?) that i have somewhere.
+
+Guide from some guy on the internet:
+https://blog.alexellis.io/test-drive-k3s-on-raspberry-pi/[Link]
+
+My laptop now uses the bastion dhcp for eth0.
+Wireshark told me that the 2nd RPi says nope!:
+Raspberr_c2:52:44	Broadcast	ARP	60	ARP Announcement for 169.254.100.204
+
+So lets get the SD card and have a look at /etc/dhcpcd.conf
+Hm no static entries, looks fine.
+
+Disconnecting laptop eth0, reconnecting, no answer on DHCP Discover...
+
+What kind of dhcp server is this...
+
+Reboot the "dhcp" server,
+Yeah, no.
+
+Let's rerun the playbook!
+Raspberr_c2:52:44	Broadcast	ARP	60	ARP Announcement for 192.168.0.71
+
+Woohoo!
+and:
+
+BizLinkK_d2:a3:6b	Broadcast	ARP	42	Who has 192.168.0.1? Tell 192.168.0.70
+
+----
+pi@bastion:~ $ dhcp-lease-list
+To get manufacturer names please download http://standards.ieee.org/regauth/oui/oui.txt to /usr/local/etc/oui.txt
+Reading leases from /var/lib/dhcp/dhcpd.leases
+MAC                IP              hostname       valid until         manufacturer
+===============================================================================================
+9c:eb:e8:d2:a3:6b  192.168.0.70    someguy        2020-11-07 00:09:02 -NA-
+dc:a6:32:c2:52:44  192.168.0.71    raspberrypi    2020-11-07 01:00:56 -NA-
+----
+
+----
+ssh pi@192.168.0.71
+----
+
+----
+ping google.com
+----
+
+works!
+
+----
+curl -sfL https://get.k3s.io | sh -
+----
+
+----
+sudo systemctl status k3s
+----
+Active: active (running) since Fri 2020-11-06 17:07:12 GMT; 24s ago
+
+----
+sudo cat /var/lib/rancher/k3s/server/node-token
+----
+
+why does my token say ::server: when the one in the guide says ::node: ? Oh well.
+
+== k3sup
+Why did I have to run the above?
+k3sup is supposed to do everything easier and faster?
+
+https://github.com/alexellis/k3sup[Link]
+----
+curl -sLS https://get.k3sup.dev | sh
+sudo cp k3sup-arm64 /usr/local/bin/k3sup
+sudo install k3sup /usr/local/bin/
+install: cannot stat 'k3sup': No such file or directory
+----
+
+pls what?
+
+----
+pi@raspberrypi:~ $ sudo curl -sLS https://get.k3sup.dev | sh
+aarch64
+Downloading package https://github.com/alexellis/k3sup/releases/download/0.9.11/k3sup-arm64 as /home/pi/k3sup-arm64
+Download complete.
+
+============================================================
+  The script was run as a user who is unable to write
+  to /usr/local/bin. To complete the installation the
+  following commands may need to be run manually.
+============================================================
+
+  sudo cp k3sup-arm64 /usr/local/bin/k3sup
+----
+
+Yeah i dont think so....
+
+----
+sudo curl -sLS https://get.k3sup.dev | sh
+cd ~
+sudo cp k3sup-arm64 /usr/local/bin/k3sup
+----
+
+well it seems k3sup is where it should be now and the command is recognized
+
+Oh great this is a tool for remote usage and I should have installed it on the bastion or on my laptop.
+
+----
+pi@bastion:~ $ sudo curl -sLS https://get.k3sup.dev | sh
+pi@bastion:~ $ sudo cp k3sup-arm64 /usr/local/bin/k3sup
+----
+
+== k3s master
+----
+pi@bastion:~ $ k3sup install --ip 192.168.0.71 --user pi
+Running: k3sup install
+Public IP: 192.168.0.71
+Error: unable to load the ssh key with path "/home/pi/.ssh/id_rsa": unable to read file: /home/pi/.ssh/id_rsa, open /home/pi/.ssh/id_rsa: no such file or directory
+----
+
+----
+pi@bastion:~ $ ssh-copy-id pi@192.168.0.71
+/usr/bin/ssh-copy-id: ERROR: No identities found
+----
+
+----
+pi@bastion:~ $ ssh-keygen
+pi@bastion:~ $ ssh-copy-id pi@192.168.0.71
+----
+
+----
+pi@bastion:~ $ k3sup install --ip 192.168.0.71 --user pi
+----
+
+----
+pi@bastion:~ $ cp kubeconfig kubeconfig-server.bak
+----
+
+== K3s Worker
+hm lets see if this old RPi2 B will work as a node
+I used my bootstrapsdcard role/playbook,
+adapted the vars for a 32-bit OS
+and removed the static ip config from /etc/dhcpcd.conf.
+It seemed to work but the RPi2 doesnt seem to boot wich is great when you try to stay headless.
+
+One HMDI cable later:
+Kernel Panic, not good.
+
+Maybe another SD card might, work.
+If the cheap chinese 32GB doesnt work I only have 128GB video class cards left for testing :D
+
+Ah yes I remember the partition, formating, mounting game.
+Lets see if my ansible-role can manage after I manually formatted the card.
+
+Reboot my machine.
+
+As I expected, my machine sometimes needs a little help with mountuing sd cards.
+
+deactivate static ip aaaand:
+
+Its Alive!
+
+----
+b8:27:eb:eb:8c:34  192.168.0.72    raspberrypi    2020-11-07 03:10:38 -NA-
+----
+
+----
+pi@bastion:~ $ ssh-copy-id pi@192.168.0.72
+----
+
+----
+pi@bastion:~ $ export KUBECONFIG=/home/pi/kubeconfig
+----
+
+Seems I am missing kubectl on bastion?
+
+----
+pi@bastion:~ $ k3sup join --ip 192.168.0.72 --server-ip 192.168.0.71 --user pi
+----
+
+== Kubectl
+
+----
+pi@bastion:~ $ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+OK
+----
+
+----
+pi@bastion:~ $ echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+----
+
+----
+pi@bastion:~ $ sudo apt-get update
+pi@bastion:~ $ sudo apt-get install -y kubectl
+----
+
+----
+pi@bastion:~ $ kubectl get node -o wide
+NAME          STATUS   ROLES    AGE    VERSION         INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                       KERNEL-VERSION   CONTAINER-RUNTIME
+raspberrypi   Ready    master   142m   v1.18.10+k3s2   192.168.0.71   <none>        Debian GNU/Linux 10 (buster)   5.4.42-v8+       containerd://1.3.3-k3s2
+pi@bastion:~ $ kubectl get pod -A
+NAMESPACE     NAME                                     READY   STATUS      RESTARTS   AGE
+kube-system   helm-install-traefik-tfbwr               0/1     Completed   0          142m
+kube-system   coredns-7944c66d8d-2dkbb                 1/1     Running     0          142m
+kube-system   svclb-traefik-27gv9                      2/2     Running     0          141m
+kube-system   traefik-758cd5fc85-fqcmp                 1/1     Running     0          141m
+kube-system   metrics-server-7566d596c8-dcc4v          1/1     Running     0          142m
+kube-system   local-path-provisioner-6d59f47c7-cplgv   1/1     Running     1          142m
+pi@bastion:~ $ kubectl get node
+NAME          STATUS   ROLES    AGE    VERSION
+raspberrypi   Ready    master   142m   v1.18.10+k3s2
+----
+
+I am missing my worker node...
+Will it show up as a server maybe?
+
+----
+pi@bastion:~ $ k3sup install --ip 192.168.0.72 --user pi
+----
+----
+pi@bastion:~ $ kubectl get node
+The connection to the server 192.168.0.72:6443 was refused - did you specify the right host or port?
+----
+
+----
+pi@raspberrypi:/usr/local/bin $ ./k3s-killall.sh
+pi@raspberrypi:/usr/local/bin $ ./k3s-uninstall.sh
+pi@raspberrypi:/usr/local/bin $ ./k3s-agent-uninstall.sh
+----
+
+----
+pi@bastion:~ $ export KUBECONFIG=/home/pi/kubeconfig-server.bak
+pi@bastion:~ $ kubectl get node
+NAME          STATUS   ROLES    AGE    VERSION
+raspberrypi   Ready    master   157m   v1.18.10+k3s2
+----
+
+----
+pi@bastion:~ $ k3sup join --ip 192.168.0.72 --server-ip 192.168.0.71 --user pi
+----
+
+----
+pi@raspberrypi:/usr/local/bin $ journalctl -xe
+
+Nov 06 19:48:13 raspberrypi k3s[5387]: time="2020-11-06T19:48:13.694287699Z" level=info msg="Starting k3s agent v1.18.10+k3s2 (a095b455)"
+Nov 06 19:48:13 raspberrypi k3s[5387]: time="2020-11-06T19:48:13.696229106Z" level=error msg="Failed to find memory cgroup, you may need to add \"cgroup_memory=1 cgroup_
+Nov 06 19:48:13 raspberrypi k3s[5387]: time="2020-11-06T19:48:13.696492022Z" level=fatal msg="failed to find memory cgroup, you may need to add \"cgroup_memory=1 cgroup_
+Nov 06 19:48:13 raspberrypi systemd[1]: k3s-agent.service: Main process exited, code=exited, status=1/FAILURE
+
+----
+
+== Its getting Late
+
+----
+Enable container features
+
+We need to enable container features in the kernel, edit /boot/cmdline.txt and add the following to the end of the line:
+
+ cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory
+----
+
+I did this before while following the guide, forgot to enter it in the log and now i had to go to jounalctl -xe to be reminded-
+
+----
+pi@raspberrypi:/boot $ sudo nano cmdline.txt
+pi@raspberrypi:/boot $ sudo reboot
+----
+
+----
+ov 06 19:52:42 raspberrypi k3s[419]: time="2020-11-06T19:52:42.019782752Z" level=error msg="Node password rejected, duplicate hostname or contents of '/etc/rancher/node
+Nov 06 19:52:47 raspberrypi k3s[419]: time="2020-11-06T19:52:47.466194260Z" level=error msg="Node password rejected, duplicate hostname or contents of '/etc/rancher/node
+Nov 06 19:52:52 raspberrypi k3s[419]: time="2020-11-06T19:52:52.905950924Z" level=error msg="Node password rejected, duplicate hostname or contents of '/etc/rancher/node
+----
+duplicate hostname probably :D
+
+----
+sudo raspi-config
+----
+
+changed hostname to rpinode,
+reboot,
+success!
+
+----
+pi@bastion:~ $ kubectl get node
+NAME          STATUS   ROLES    AGE    VERSION
+raspberrypi   Ready    master   171m   v1.18.10+k3s2
+rpinode       Ready    <none>   23s    v1.18.10+k3s2
+----
+
+== Get a blinking Led
+
+----
+pi@rpinode:~ $ sudo apt install git
+pi@rpinode:~ $ curl -sSL https://get.docker.com | sh
+----
+
+There are some refs to arm64 in the Dockerfile this will probably not work on the RPi2...
+----
+pi@rpinode:~/k3s-golang-blinker $ sudo docker build .
+----
+
+do I need buildkit?
+
+----
+pi@rpinode:~/k3s-golang-blinker $ export DOCKER_CLI_EXPERIMENTAL=enabled
+----
+
+this should fix docker permission denied
+----
+sudo chmod 666 /var/run/docker.sock
+----
+
+----
+$ docker buildx create --name mybuilder
+$ docker buildx use mybuilder
+$ docker buildx inspect --bootstrap
+----
+
+changed arm64 in the dockerfile to arm...
+----
+pi@rpinode:~/k3s-golang-blinker $ docker buildx build --platform linux/arm,linux/arm64,linux/amd64 -t sometag .
+----
+
+docker run:
+No luck on the RPi2... exec format error, try the RPi4 master
+
+----
+pi@raspberrypi:~ $ sudo apt install git
+pi@raspberrypi:~ $ curl -sSL https://get.docker.com | sh
+pi@raspberrypi:~ $ git clone https://github.com/Gepardec/k3s-golang-blinker.git
+----
+
+----
+pi@raspberrypi:~ $ sudo chmod 666 /var/run/docker.sock
+----
+
+----
+pi@raspberrypi:~/k3s-golang-blinker $ docker build . -t sometag
+----
+
+----
+pi@raspberrypi:~/k3s-golang-blinker $ docker image list
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+sometag             latest              c62c8467c7ad        11 seconds ago      7.51MB
+<none>              <none>              a0f26fea836a        15 seconds ago      732MB
+golang              1.14.10-buster      9d569f1b681a        3 weeks ago         714MB
+----
+
+----
+pi@raspberrypi:~/k3s-golang-blinker $ docker run c62c
+----
+
+----
+pi@raspberrypi:~/k3s-golang-blinker $ docker run c62c -d
+Started
+----
+-- detach doesnt seem to work
+
+----
+^Cpi@raspberrypi:~/k3s-golang-blinker $ docker run c62c -d -i -t -p 8080:8082
+----
+cant reach the port when running the image in docker
+try k3s
+
+tomorrow :/
+
+reboot everything...
+and the dhcp doesnt work.
+
+It is ARP broadcasting but nobody answers.
+
+Repluging Ethernet cables, nothing.
+Resetting connection, nothing.
+Rebooting dhcp, nothing.
+
+Lets rerun the role and hope for the best.
+
+The first positive ARP Announcements go out while bertvv.bind is still running.
+
+And the cluster...
+----
+pi@bastion:~ $ kubectl get node
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+----
+----
+pi@raspberrypi:~ $ sudo kubectl get node
+NAME          STATUS   ROLES    AGE   VERSION
+raspberrypi   Ready    master   15h   v1.18.10+k3s2
+rpinode       Ready    <none>   12h   v1.18.10+k3s2
+----
+is not reachable from bastion.
+
+== battleplan
+
+So everything is up and running more or less.
+Today we will switch the Rpi2 rpinode into the master/server and the raspberrypi will become our Agent/Node.
+That way the 64bit k3s-golang-blinker can run on a 64 bit node.
+Otherwise it would have had to run on the master or be portet to 32bit.
+
+uninstall k3s:
+
+----
+pi@raspberrypi:~ $ cd /usr/local/bin && ./k3s-killall.sh
+pi@raspberrypi:/usr/local/bin $ ./k3s-uninstall.sh
+----
+----
+pi@rpinode:~ $ cd /usr/local/bin && ./k3s-killall.sh
+pi@rpinode:/usr/local/bin $ ./k3s-agent-uninstall.sh
+----
+
+rpinode as server
+----
+pi@bastion:~ $ k3sup install --ip 192.168.0.72 --user pi
+----
+----
+pi@bastion:~ $ export KUBECONFIG=/home/pi/kubeconfig
+pi@bastion:~ $ kubectl get node -o wide
+NAME      STATUS   ROLES    AGE     VERSION         INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION   CONTAINER-RUNTIME
+rpinode   Ready    master   4m44s   v1.18.10+k3s2   192.168.0.72   <none>        Raspbian GNU/Linux 10 (buster)   5.4.51-v7+       containerd://1.3.3-k3s2
+----
+
+raspberrypi as agent
+----
+pi@bastion:~ $ k3sup join --ip 192.168.0.71 --server-ip 192.168.0.72 --user pi
+----
+----
+[INFO]  systemd: Starting k3s-agent
+pi@bastion:~ $ kubectl get node -o wide
+NAME      STATUS   ROLES    AGE     VERSION         INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION   CONTAINER-RUNTIME
+rpinode   Ready    master   6m18s   v1.18.10+k3s2   192.168.0.72   <none>        Raspbian GNU/Linux 10 (buster)   5.4.51-v7+       containerd://1.3.3-k3s2
+pi@bastion:~ $ kubectl get node -o wide
+NAME          STATUS   ROLES    AGE     VERSION         INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION   CONTAINER-RUNTIME
+rpinode       Ready    master   6m28s   v1.18.10+k3s2   192.168.0.72   <none>        Raspbian GNU/Linux 10 (buster)   5.4.51-v7+       containerd://1.3.3-k3s2
+raspberrypi   Ready    <none>   9s      v1.18.10+k3s2   192.168.0.71   <none>        Debian GNU/Linux 10 (buster)     5.4.42-v8+       containerd://1.3.3-k3s2
+----
+
+=== image
+is the conteiner image still on raspberry?
+
+----
+pi@raspberrypi:/usr/local/bin $ docker ps
+Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/json: dial unix /var/run/docker.sock: connect: permission denied
+----
+
+----
+pi@raspberrypi:~ $ sudo chmod 666 /var/run/docker.sock
+----
+
+----
+pi@raspberrypi:/usr/local/bin $ docker image list
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+sometag             latest              c62c8467c7ad        12 hours ago        7.51MB
+<none>              <none>              a0f26fea836a        12 hours ago        732MB
+golang              1.14.10-buster      9d569f1b681a        3 weeks ago         714MB
+----
+
+can I reach the blinker app in the container?
+
+----
+pi@raspberrypi:~ $ docker run c62c -d -i -t -p 8082:8082
+Started
+----
+
+detached not working open another ssh connection....
+
+----
+pi@raspberrypi:~ $ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+4d8c79a9e84d        c62c                "/main -d -i -t -p 8…"   55 seconds ago      Up 54 seconds       8082/tcp            elastic_saha
+----
+
+----
+sudo netstat -at |grep 8082
+sudo netstat -tulpn |grep 8082
+----
+show nothing
+
+----
+^Cpi@raspberrypi:~ $ sudo docker run c62c -d -i -t -p 8082:8082
+----
+
+also nothing.
+
+lets see if we can get it to run on the cluster and fix it there.
+I will use bastion to access the cluster, so lets build the image there.
+
+install docker
+----
+pi@bastion:~ $ curl -sSL https://get.docker.com | sh
+pi@bastion:~ $ sudo usermod -aG docker pi
+pi@bastion:~ $ git clone https://github.com/Gepardec/k3s-golang-blinker.git
+pi@bastion:~ $ docker build k3s-golang-blinker/ -t blinker
+pi@bastion:~ $ docker build k3s-golang-blinker/ -t blinker
+ERRO[0000] failed to dial gRPC: cannot connect to the Docker daemon. Is 'docker daemon' running on this host?: dial unix /var/run/docker.sock: connect: permission denied
+----
+
+----
+pi@bastion:~ $ sudo chmod 666 /var/run/docker.sock
+pi@bastion:~ $ docker build k3s-golang-blinker/ -t blinker
+----
+
+https://medium.com/swlh/how-to-run-locally-built-docker-images-in-kubernetes-b28fbc32cc1d[Link]
+
+----
+^Cpi@bastion:~ $ sudo touch blinker.yml
+pi@bastion:~ $ sudo nano blinker.yml
+pi@bastion:~ $ cat blinker.yml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: blinker
+spec:
+  template:
+    metadata:
+      name: blinker-pod
+    spec:
+      containers:
+      - name: blinker
+        image: blinker:latest
+        ports:
+        - containerPort: 8082
+        imagePullPolicy: Never
+      restartPolicy: Never
+----
+
+----
+pi@bastion:~ $ kubectl create -f blinker.yml
+job.batch/blinker created
+pi@bastion:~ $ kubectl get pods
+NAME            READY   STATUS              RESTARTS   AGE
+blinker-5xt7f   0/1     ErrImageNeverPull   0          63s
+----
+
+Yeah no lets forget about locally...
+one of my colleagues put it on dockerhub: gepardec/k3s-golang-blinker
+
+----
+pi@bastion:~ $ sudo nano blinker.yml
+pi@bastion:~ $ cat blinker.yml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: blinker
+spec:
+  template:
+    metadata:
+      name: blinker-pod
+    spec:
+      containers:
+      - name: blinker
+        image: gepardec/k3s-golang-blinker
+        ports:
+        - containerPort: 8082
+        imagePullPolicy: Never
+      restartPolicy: Never
+----
+
+----
+pi@bastion:~ $ kubectl delete -f blinker.yml
+job.batch "blinker" deleted
+pi@bastion:~ $ kubectl create -f blinker.yml
+job.batch/blinker created
+pi@bastion:~ $ kubectl get pod
+NAME            READY   STATUS              RESTARTS   AGE
+blinker-qhsdw   0/1     ErrImageNeverPull   0          4s
+pi@bastion:~ $ ping hub.docker.com
+PING us-east-1-elbdefau-1nlhaqqbnj2z8-140214243.us-east-1.elb.amazonaws.com (34.237.236.162) 56(84) bytes of data.
+^C
+--- us-east-1-elbdefau-1nlhaqqbnj2z8-140214243.us-east-1.elb.amazonaws.com ping statistics ---
+39 packets transmitted, 0 received, 100% packet loss, time 355ms
+----
+
+would have been too easy I guess
+
+----
+pi@bastion:~ $ ping google.com
+PING google.com (172.217.18.78) 56(84) bytes of data.
+64 bytes from bud02s26-in-f14.1e100.net (172.217.18.78): icmp_seq=1 ttl=119 time=20.8 ms
+64 bytes from bud02s26-in-f14.1e100.net (172.217.18.78): icmp_seq=2 ttl=119 time=20.4 ms
+64 bytes from bud02s26-in-f14.1e100.net (172.217.18.78): icmp_seq=3 ttl=119 time=21.4 ms
+64 bytes from bud02s26-in-f14.1e100.net (172.217.18.78): icmp_seq=4 ttl=119 time=20.5 ms
+64 bytes from bud02s26-in-f14.1e100.net (172.217.18.78): icmp_seq=5 ttl=119 time=20.8 ms
+^C
+--- google.com ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 5ms
+rtt min/avg/max/mdev = 20.390/20.775/21.389/0.354 ms
+pi@bastion:~ $
+----
+
+wait wasn't there an imagePullPolicy: Never in the yml?
+
+----
+pi@bastion:~ $ sudo nano blinker.yml
+pi@bastion:~ $ cat blinker.yml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: blinker
+spec:
+  template:
+    metadata:
+      name: blinker-pod
+    spec:
+      containers:
+      - name: blinker
+        image: gepardec/k3s-golang-blinker
+        ports:
+        - containerPort: 8082
+      restartPolicy: Never
+pi@bastion:~ $
+----
+
+----
+pi@bastion:~ $ kubectl delete -f blinker.yml
+job.batch "blinker" deleted
+pi@bastion:~ $ kubectl create -f blinker.yml
+job.batch/blinker created
+pi@bastion:~ $ kubectl get pod
+NAME            READY   STATUS         RESTARTS   AGE
+blinker-tw7ww   0/1     ErrImagePull   0          6s
+pi@bastion:~ $ kubectl get pod
+NAME            READY   STATUS         RESTARTS   AGE
+blinker-tw7ww   0/1     ErrImagePull   0          13s
+----
+
+----
+pi@bastion:~ $ kubectl describe pod blinker-tw7ww
+----
+
+----
+Events:
+  Type     Reason     Age                 From               Message
+  ----     ------     ----                ----               -------
+  Normal   Scheduled  114s                default-scheduler  Successfully assigned default/blinker-tw7ww to raspberrypi
+  Warning  Failed     29s (x5 over 111s)  kubelet            Error: ImagePullBackOff
+  Normal   Pulling    18s (x4 over 114s)  kubelet            Pulling image "gepardec/k3s-golang-blinker"
+  Warning  Failed     16s (x4 over 111s)  kubelet            Failed to pull image "gepardec/k3s-golang-blinker": rpc error: code = NotFound desc = failed to pull and unpack image "docker.io/gepardec/k3s-golang-blinker:latest": failed to resolve reference "docker.io/gepardec/k3s-golang-blinker:latest": docker.io/gepardec/k3s-golang-blinker:latest: not found
+  Warning  Failed     16s (x4 over 111s)  kubelet            Error: ErrImagePull
+  Normal   BackOff    0s (x6 over 111s)   kubelet            Back-off pulling image "gepardec/k3s-golang-blinker"
+----
+
+----
+pi@bastion:~ $ sudo nano blinker.yml
+pi@bastion:~ $ cat blinker.yml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: blinker
+spec:
+  template:
+    metadata:
+      name: blinker-pod
+    spec:
+      containers:
+      - name: blinker
+        image: postgres
+        ports:
+        - containerPort: 8082
+      restartPolicy: Never
+----
+
+----
+pi@bastion:~ $ kubectl delete -f blinker.yml
+job.batch "blinker" deleted
+pi@bastion:~ $ kubectl create -f blinker.yml
+job.batch/blinker created
+pi@bastion:~ $ kubectl get pod
+NAME            READY   STATUS              RESTARTS   AGE
+blinker-7pmv8   0/1     ContainerCreating   0          12s
+----
+
+so the postgres image works.
+
+https://index.docker.io/r/gepardec/k3s-golang-blinker
+is 404
+
+----
+pi@bastion:~ $ docker pull gepardec/k3s-golang-blinker
+Using default tag: latest
+Error response from daemon: manifest for gepardec/k3s-golang-blinker:latest not found: manifest unknown: manifest unknown
+pi@bastion:~ $ docker pull gepardec/k3s-golang-blinker:1.0.1-arm
+1.0.1-arm: Pulling from gepardec/k3s-golang-blinker
+e2115e817e7f: Pull complete
+Digest: sha256:0ad0948601a89e020a76e5996429d7a0d0297f10e1c153dd366004f45df1e76e
+Status: Downloaded newer image for gepardec/k3s-golang-blinker:1.0.1-arm
+docker.io/gepardec/k3s-golang-blinker:1.0.1-arm
+----
+
+----
+pi@bastion:~ $ kubectl delete -f blinker.yml
+job.batch "blinker" deleted
+pi@bastion:~ $ kubectl create -f blinker.yml
+job.batch/blinker created
+pi@bastion:~ $ kubectl get pod
+NAME            READY   STATUS              RESTARTS   AGE
+blinker-llxqq   0/1     ContainerCreating   0          5s
+pi@bastion:~ $ kubectl describe pod blinker-llxqq
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  18s   default-scheduler  Successfully assigned default/blinker-llxqq to raspberrypi
+  Normal  Pulling    18s   kubelet            Pulling image "gepardec/k3s-golang-blinker:1.0.1-arm"
+  Normal  Pulled     13s   kubelet            Successfully pulled image "gepardec/k3s-golang-blinker:1.0.1-arm"
+----
+
+=== Lets make a service
+
+https://github.com/bbruun/k3s-getting-started[Link]
+
+----
+pi@bastion:~ $ sudo nano /etc/hosts
+pi@bastion:~ $ cat /etc/hosts
+127.0.0.1	localhost
+::1		localhost ip6-localhost ip6-loopback
+ff02::1		ip6-allnodes
+ff02::2		ip6-allrouters
+127.0.0.1	bastion
+127.0.1.1		raspberrypi
+192.168.0.72    www.example.com blinker.example.com example.com
+----
+
+----
+pi@bastion:~ $ touch blinker-ingress.yml
+pi@bastion:~ $ sudo nano blinker-ingress.yml
+pi@bastion:~ $ cat blinker-ingress.yml
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: blinker
+spec:
+  rules:
+  - host: blinker.example.com
+    http:
+      paths:
+      - backend:
+          serviceName: blinker
+          servicePort: 80
+        path:
+----
+
+----
+pi@bastion:~ $ kubectl create namespace blinker
+namespace/blinker created
+----
+
+----
+pi@bastion:~ $ touch blinker-deployment.yml
+pi@bastion:~ $ sudo nano blinker-deployment.yml
+pi@bastion:~ $ cat blinker-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blinker
+spec:
+  selector:
+    matchLabels:
+      app: blinker
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: blinker
+    spec:
+      containers:
+      - name: blinker
+        image: nginx:stable
+        ports:
+        - containerPort: 8082
+----
+
+----
+pi@bastion:~ $ touch blinker-service.yml
+pi@bastion:~ $ sudo nano blinker-service.yml
+pi@bastion:~ $ cat blinker-service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: blinker
+spec:
+  ports:
+  - port: 8083
+    protocol: TCP
+    targetPort: 8082
+  type: NodePort
+  selector:
+    app: blinker
+----
+
+----
+pi@bastion:~ $ kubectl -n blinker create -f blinker-deployment.yml
+deployment.apps/blinker created
+pi@bastion:~ $ kubectl -n blinker create -f blinker-service.yml
+service/blinker created
+pi@bastion:~ $ kubectl -n blinker create -f blinker-ingress.yml
+ingress.extensions/blinker created
+----
+
+----
+pi@bastion:~ $ kubectl --namespace blinker get deployments
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+blinker   2/2     2            2           60s
+pi@bastion:~ $ kubectl --namespace blinker get pods
+NAME                       READY   STATUS    RESTARTS   AGE
+blinker-6dbb745775-v4cdd   1/1     Running   0          66s
+blinker-6dbb745775-wcw7f   1/1     Running   0          66s
+pi@bastion:~ $ kubectl --namespace blinker get ingresses
+NAME      CLASS    HOSTS                 ADDRESS        PORTS   AGE
+blinker   <none>   blinker.example.com   192.168.0.72   80      53s
+pi@bastion:~ $ kubectl --namespace blinker get services
+NAME      TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+blinker   NodePort   10.43.108.195   <none>        8083:32549/TCP   73s
+----
+
+----
+pi@bastion:~ $ curl http://blinker.example.com
+Service Unavailablepi@bastion:~ $
+----
+
+change all port entries in the ymls to 8082
+
+----
+pi@bastion:~ $ kubectl -n blinker delete -f blinker-ingress.yml
+ingress.extensions "blinker" deleted
+pi@bastion:~ $ kubectl -n blinker delete -f blinker-service.yml
+service "blinker" deleted
+pi@bastion:~ $ kubectl -n blinker delete -f blinker-deployment.yml
+deployment.apps "blinker" deleted
+
+pi@bastion:~ $ kubectl --namespace blinker get deployments
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+blinker   2/2     2            2           10s
+pi@bastion:~ $ kubectl --namespace blinker get pods
+NAME                       READY   STATUS    RESTARTS   AGE
+blinker-6dbb745775-bj48l   1/1     Running   0          18s
+blinker-6dbb745775-cl5kh   1/1     Running   0          18s
+pi@bastion:~ $ kubectl --namespace blinker get ingresses
+NAME      CLASS    HOSTS                 ADDRESS        PORTS   AGE
+blinker   <none>   blinker.example.com   192.168.0.72   80      51s
+pi@bastion:~ $ kubectl --namespace blinker get services
+NAME      TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+blinker   NodePort   10.43.146.225   <none>        8082:31621/TCP   51s
+----
+
+use the exact example from the guide
+
+----
+pi@bastion:~ $ git clone git@github.com:bbruun/k3s-getting-started.git
+Cloning into 'k3s-getting-started'...
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+pi@bastion:~ $ git clone https://github.com/bbruun/k3s-getting-started.git
+----
+
+----
+pi@bastion:~ $ cat /etc/hosts
+127.0.0.1	localhost
+::1		localhost ip6-localhost ip6-loopback
+ff02::1		ip6-allnodes
+ff02::2		ip6-allrouters
+127.0.0.1	bastion
+127.0.1.1		raspberrypi
+192.168.0.72    www.example.com blinker.example.com example.com
+192.168.0.72    www.example.com nginx.example.com example.com
+----
+
+----
+pi@bastion:~/k3s-getting-started $ kubectl create namespace nginx
+namespace/nginx created
+pi@bastion:~/k3s-getting-started $ cd nginx-deployment/
+pi@bastion:~/k3s-getting-started/nginx-deployment $ kubectl -n nginx create -f nginx-deployment.yml
+deployment.apps/nginx created
+pi@bastion:~/k3s-getting-started/nginx-deployment $ kubectl -n nginx create -f nginx-service.yml
+service/nginx created
+pi@bastion:~/k3s-getting-started/nginx-deployment $ kubectl -n nginx create -f nginx-ingress.yml
+ingress.extensions/nginx created
+pi@bastion:~/k3s-getting-started/nginx-deployment $ kubectl --namespace nginx get deployments
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+nginx   2/2     2            2           30s
+pi@bastion:~/k3s-getting-started/nginx-deployment $ kubectl --namespace nginx get pods
+NAME                    READY   STATUS    RESTARTS   AGE
+nginx-7dbff8cff-4jznf   1/1     Running   0          36s
+nginx-7dbff8cff-8frvl   1/1     Running   0          36s
+pi@bastion:~/k3s-getting-started/nginx-deployment $ kubectl --namespace nginx get ingresses
+NAME    CLASS    HOSTS               ADDRESS        PORTS   AGE
+nginx   <none>   nginx.example.com   192.168.0.72   80      26s
+pi@bastion:~/k3s-getting-started/nginx-deployment $ kubectl --namespace nginx get services
+NAME    TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+nginx   NodePort   10.43.165.23   <none>        80:31917/TCP   41s
+----
+
+----
+curl http://nginx.example.com
+----
+
+something seems to be off with the config, no idea what.
+
+https://www.jeffgeerling.com/blog/2020/installing-k3s-kubernetes-on-turing-pi-raspberry-pi-cluster-episode-3[Link]
+https://www.jeffgeerling.com/blog/2020/raspberry-pi-cluster-episode-4-minecraft-pi-hole-grafana-and-more[Link]
+
+----
+pi@bastion:~ $ kubectl -n blinker delete -f blinker-ingress.yml
+----
+
+
+----
+pi@bastion:~ $ kubectl -n nginx describe ingress nginx
+Name:             nginx
+Namespace:        nginx
+Address:          192.168.0.72
+Default backend:  default-http-backend:80 (<error: endpoints "default-http-backend" not found>)
+Rules:
+  Host               Path  Backends
+  ----               ----  --------
+  nginx.example.com
+                        nginx:80 (10.42.1.17:80,10.42.1.18:80)
+Annotations:         <none>
+Events:              <none>
+----
+
+https://stackoverflow.com/questions/63558461/endpoints-default-http-backend-not-found-in-ingress-resource
+
+https://v1-17.docs.kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/#enable-the-ingress-controller
+
+----
+pi@bastion:~ $ kubectl run web --image=gcr.io/google-samples/hello-app:1.0 --port=8484
+pod/web created
+pi@bastion:~ $ kubectl get pods
+NAME            READY   STATUS             RESTARTS   AGE
+blinker-llxqq   1/1     Running            0          5h18m
+web             0/1     CrashLoopBackOff   2          45s
+pi@bastion:~ $ kubectl expose pod web --target-port=8484 --type=NodePort
+service/web exposed
+pi@bastion:~ $ kubectl get service web
+NAME   TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+web    NodePort   10.43.139.106   <none>        8484:32156/TCP   44s
+pi@bastion:~ $ sudo nano example-ingress.yaml
+pi@bastion:~ $ cat example-ingress.yaml
+apiVersion: networking.k8s.io/v1beta1 # for versions before 1.14 use extensions/v1beta1
+kind: Ingress
+metadata:
+  name: example-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+  - host: hello-world.info
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: web
+          servicePort: 8080
+pi@bastion:~ $ kubectl apply -f example-ingress.yaml
+ingress.networking.k8s.io/example-ingress created
+pi@bastion:~ $ sudo nano /etc/hosts
+pi@bastion:~ $ cat /etc/hosts
+127.0.0.1	localhost
+::1		localhost ip6-localhost ip6-loopback
+ff02::1		ip6-allnodes
+ff02::2		ip6-allrouters
+127.0.0.1	bastion
+127.0.1.1		raspberrypi
+192.168.0.72    www.example.com blinker.example.com example.com
+192.168.0.72    www.example.com nginx.example.com example.com
+192.168.0.72 hello-world.info
+----
+
+----
+pi@bastion:~ $ curl hello-world.info
+Service Unavailable
+----
+
+----
+i@bastion:~ $ sudo nano example-ingress.yaml
+pi@bastion:~ $ cat example-ingress.yaml
+apiVersion: networking.k8s.io/v1beta1 # for versions before 1.14 use extensions/v1beta1
+kind: Ingress
+metadata:
+  name: example-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+  - host: hello-world.info
+    http:
+      paths:
+      - path: /v2/*
+        backend:
+          serviceName: web
+          servicePort: 8080
+----
+
+----
+pi@bastion:~ $ kubectl apply -f example-ingress.yaml
+ingress.networking.k8s.io/example-ingress configured
+pi@bastion:~ $ curl hello-world.info
+404 page not found
+pi@bastion:~ $ curl hello-world.info/v2/bla
+404 page not found
+pi@bastion:~ $ curl hello-world.info/v2
+404 page not found
+----
+
+----
+pi@bastion:~ $ kubectl -n nginx describe svc nginx
+Name:                     nginx
+Namespace:                nginx
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=nginx
+Type:                     NodePort
+IP:                       10.43.165.23
+Port:                     <unset>  80/TCP
+TargetPort:               80/TCP
+NodePort:                 <unset>  31917/TCP
+Endpoints:                10.42.1.17:80,10.42.1.18:80
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+pi@raspberrypi:~ $ sudo kubectl -n nginx describe svc nginx
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+----
+
+----
+pi@bastion:~ $ curl 10.42.1.17:80
+^C
+pi@raspberrypi:~ $ curl 10.42.1.17:80
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+----
+
+Not sure whats going on.
+
+----
+pi@bastion:~ $ kubectl -n blinker describe svc blinker
+Name:                     blinker
+Namespace:                blinker
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=blinker
+Type:                     NodePort
+IP:                       10.43.146.225
+Port:                     <unset>  8082/TCP
+TargetPort:               8082/TCP
+NodePort:                 <unset>  31621/TCP
+Endpoints:                10.42.1.15:8082,10.42.1.16:8082
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+----
+
+I turned off the bastion host.
+Time to rerun the playbook, so dhcp is working again.
+
+=== default.config.yml
+
+Maybe I should adapt the entries in the config.yml to match the ip and may of my k3s bastion, server and worker.
+
+//Lets have a look at the variables used:
+//----
+//ansible-playbook bastion.yml -i ./hosts.ini -v
+//----
+
+There are a couple of vars in the yml that might be important:
+
+----
+dhcp_hosts:
+  - name: k3s
+    mac: 'dc:a6:32:be:c7:a5'
+    ip: 192.168.0.1
+  - name: master-0
+    mac: 'dc:a6:32:b1:17:b6'
+    ip: 192.168.0.10
+  - name: worker-0
+    mac: 'dc:a6:32:b1:17:c8'
+    ip: 192.168.0.20
+----
+
+I guess I could get my worker and server the same ip, by entering their mac here.
+Does the name have to match the hostname?
+Is k3s the bastion host?
+Does any part of this system rely on those fixed ip's?
+
+https://www.itsfullofstars.de/2019/02/assign-a-static-ip-to-dhcp-client/[Link]
+
+I guess the assignment is only mac based and the name is is only for the mac entry.
+
+I used wireshark to capture a ping.
+RPi2, Master
+Ethernet II, Src: Raspberr_eb:8c:34 (b8:27:eb:eb:8c:34), Dst: BizLinkK_d2:a3:6b (9c:eb:e8:d2:a3:6b)
+RPi4 Worker
+Ethernet II, Src: Raspberr_c2:52:44 (dc:a6:32:c2:52:44), Dst: BizLinkK_d2:a3:6b (9c:eb:e8:d2:a3:6b)
+Bastion
+Ethernet II, Src: Raspberr_5d:6b:1e (dc:a6:32:5d:6b:1e), Dst: BizLinkK_d2:a3:6b (9c:eb:e8:d2:a3:6b)
+
+turn off all the RPis.
+reboot the bastion, rerun the bastion-playbook.
+looking at wireshark the x.x.x.20 worked, not seeing the 10.
+Can ping the 10, so I guess its just not as chatty.
+
+Once again I need to remove some entries from the knownhosts file, so I can ssh into the RPis.
+Remove line 25:
+----
+sed -i '25d' ~/.ssh/known_hosts
+----
+
+The cluster is dysfunctional:
+----
+pi@rpinode:~ $ sudo kubectl get node
+NAME          STATUS     ROLES    AGE     VERSION
+raspberrypi   NotReady   <none>   3d10h   v1.18.10+k3s2
+rpinode       Ready      master   3d10h   v1.18.10+k3s2
+----
+
+So I will reinstall it with k3sup.
+I hope the k3sup is compatible with what my colleagues had in mind with the bastion playbook.
+
+When the cluster is backup I will get a container that I can wget on some port and get a kown response/document, then I will test it in docker, then in the cluster.
+
+If everything works, great; if not I will have a look at the cluster networking, ha proxy, lb, ingress etc.
+
+----
+pi@raspberrypi:/usr/local/bin $ ./k3s-killall.sh
+pi@raspberrypi:/usr/local/bin $ ./k3s-agent-uninstall.sh
+pi@rpinode:/usr/local/bin $ ./k3s-killall.sh
+pi@rpinode:/usr/local/bin $ ./k3s-uninstall.sh
+----
+Keep in mind that the hostnames are not accurate:
+- rpinode is the RPi2 that will be the master
+- raspberrypi is the RPi4 that will be the node/worker.
+
+This bulletinboard app might be right
+https://docs.docker.com/get-started/part2/[Link]
+
+----
+pi@bastion:~ $ git clone https://github.com/dockersamples/node-bulletin-board
+pi@bastion:~ $ cd node-bulletin-board/bulletin-board-app/
+pi@bastion:~/node-bulletin-board/bulletin-board-app $ docker build --tag bulletinboard:1.0 .
+pi@bastion:~/node-bulletin-board/bulletin-board-app $ docker run --publish 8000:8080 --detach --name bb bulletinboard:1.0
+abd78d2fc2f6baf8eb7a617414229331c06c46a0a61e0f662f04904634f7c9e0
+pi@bastion:~/node-bulletin-board/bulletin-board-app $ wget localhost:8000
+--2020-11-11 09:26:25--  http://localhost:8000/
+Resolving localhost (localhost)... ::1, 127.0.0.1
+Connecting to localhost (localhost)|::1|:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 1826 (1.8K) [text/html]
+Saving to: ‘index.html.1’
+
+index.html.1                            100%[============================================================================>]   1.78K  --.-KB/s    in 0s
+
+2020-11-11 09:26:25 (37.1 MB/s) - ‘index.html.1’ saved [1826/
+pi@bastion:~/node-bulletin-board/bulletin-board-app $ docker stop bb
+bb
+pi@bastion:~/node-bulletin-board/bulletin-board-app $ docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+pi@bastion:~/node-bulletin-board/bulletin-board-app $ docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS                     PORTS               NAMES
+abd78d2fc2f6        bulletinboard:1.0   "docker-entrypoint.s…"   About a minute ago   Exited (1) 9 seconds ago                       bb
+7b28d5290228        blinker:latest      "/main -p 8082:8082 …"   3 days ago           Exited (2) 3 days ago                          clever_kapitsa
+b3c92e2af8ce        blinker:latest      "/main"                  3 days ago           Exited (2) 3 days ago                          mystifying_leavitt
+----
+It worked.
+Now lets push it to dockerhub so we can pull it for our cluster.
+
+----
+pi@bastion:~/node-bulletin-board/bulletin-board-app $ docker commit -m "wget on port 8080" bb someguy/bulletinboard:latest
+pi@bastion:~/node-bulletin-board/bulletin-board-app $ docker login
+pi@bastion:~/node-bulletin-board/bulletin-board-app $ docker push someguy/bulletinboard
+----
+
+setup the cluster and deploy
+https://blog.alexellis.io/test-drive-k3s-on-raspberry-pi/[Link]
+
+----
+pi@bastion:~ $ k3sup install --ip 192.168.0.10  --user pi
+# Test your cluster with:
+export KUBECONFIG=/home/pi/kubeconfig
+kubectl get node -o wide
+pi@bastion:~ $ export KUBECONFIG=/home/pi/kubeconfig
+pi@bastion:~ $ kubectl get node -o wide
+NAME      STATUS   ROLES    AGE   VERSION         INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION   CONTAINER-RUNTIME
+rpinode   Ready    master   11m   v1.18.10+k3s2   192.168.0.10   <none>        Raspbian GNU/Linux 10 (buster)   5.4.51-v7+       containerd://1.3.3-k3s2
+pi@bastion:~ $ k3sup join --ip 192.168.0.20 --server-ip 192.168.0.10 --user pi
+pi@bastion:~ $ kubectl get node -o wide
+NAME          STATUS   ROLES    AGE   VERSION         INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION   CONTAINER-RUNTIME
+rpinode       Ready    master   14m   v1.18.10+k3s2   192.168.0.10   <none>        Raspbian GNU/Linux 10 (buster)   5.4.51-v7+       containerd://1.3.3-k3s2
+raspberrypi   Ready    <none>   75s   v1.18.10+k3s2   192.168.0.20   <none>        Debian GNU/Linux 10 (buster)     5.4.42-v8+       containerd://1.3.3-k3s2
+pi@bastion:~ $ kubectl get pod --all-namespaces
+NAMESPACE     NAME                                     READY   STATUS      RESTARTS   AGE
+kube-system   local-path-provisioner-6d59f47c7-b8vvn   1/1     Running     0          24m
+kube-system   metrics-server-7566d596c8-bjf2m          1/1     Running     0          24m
+kube-system   coredns-7944c66d8d-wt2dl                 1/1     Running     0          24m
+kube-system   helm-install-traefik-9p6mf               0/1     Completed   0          24m
+kube-system   svclb-traefik-cxv7n                      2/2     Running     0          22m
+kube-system   traefik-758cd5fc85-p4nfp                 1/1     Running     0          22m
+kube-system   svclb-traefik-rxwp2                      2/2     Running     0          10m
+----
+
+----
+pi@bastion:~ $ cat bulletin-deployment.yml
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: bulletin-deployment
+spec:
+  selector:
+    matchLabels:
+      app: bulletin
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: bulletin
+    spec:
+      containers:
+      - name: bulletin
+        image: someguy/bulletinboard:latest
+        ports:
+        - containerPort: 8080
+----
+
+----
+pi@bastion:~ $ kubectl create -f bulletin-deployment.yml
+deployment.apps/bulletin-deployment created
+pi@bastion:~ $ kubectl get pods
+NAME                                   READY   STATUS              RESTARTS   AGE
+bulletin-deployment-77747bdf85-7zfnr   0/1     ContainerCreating   0          30s
+bulletin-deployment-77747bdf85-xn7kz   0/1     ContainerCreating   0          29s
+pi@bastion:~ $ kubectl get services
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.43.0.1    <none>        443/TCP   35m
+pi@bastion:~ $ kubectl get pods
+NAME                                   READY   STATUS    RESTARTS   AGE
+bulletin-deployment-77747bdf85-7zfnr   1/1     Running   0          49s
+bulletin-deployment-77747bdf85-xn7kz   1/1     Running   0          48s
+pi@bastion:~ $ kubectl get deployments
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+bulletin-deployment   2/2     2            2           53s
+pi@bastion:~ $ kubectl describe deployment bulletin-deployment
+Name:                   bulletin-deployment
+Namespace:              default
+CreationTimestamp:      Wed, 11 Nov 2020 10:45:37 +0000
+Labels:                 <none>
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=bulletin
+Replicas:               2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=bulletin
+  Containers:
+   bulletin:
+    Image:        moberwalder/bulletinboard:latest
+    Port:         8080/TCP
+    Host Port:    0/TCP
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   bulletin-deployment-77747bdf85 (2/2 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  91s   deployment-controller  Scaled up replica set bulletin-deployment-77747bdf85 to 2
+----
+
+deployment and pull from dockerhub worked, lets setup the service.
+
+----
+pi@bastion:~ $ sudo nano bulletin-service.yaml
+pi@bastion:~ $ cat bulletin-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: bulletin-service
+spec:
+  selector:
+    app: bulletin
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8080
+pi@bastion:~ $ kubectl create -f bulletin-service.yaml
+service/bulletin-service created
+pi@bastion:~ $ kubectl get services
+NAME               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+kubernetes         ClusterIP   10.43.0.1       <none>        443/TCP    54m
+bulletin-service   ClusterIP   10.43.124.111   <none>        8000/TCP   10s
+pi@bastion:~ $ kubectl describe service bulletin-service
+Name:              bulletin-service
+Namespace:         default
+Labels:            <none>
+Annotations:       <none>
+Selector:          app=bulletin
+Type:              ClusterIP
+IP:                10.43.124.111
+Port:              <unset>  8000/TCP
+TargetPort:        8080/TCP
+Endpoints:         10.42.1.3:8080,10.42.1.4:8080
+Session Affinity:  None
+Events:            <none>
+----
+
+On the Worker I can wget the pod:
+----
+pi@raspberrypi:~ $ curl 10.42.1.3:8080
+----
+
+Lets try to access the service via kubectl proxy.
+Later we could try NodePort, LoadBalancer and/or Ingress.
+https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0[Link]
+
+----
+pi@bastion:~ $ kubectl proxy --port=8080
+Starting to serve on 127.0.0.1:8080
+----
+2nd shell
+----
+}pi@bastion:~ $ curl http://localhost:8080/api/v1/proxy/namespaces/default/services/bulletin-service:8000/
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {
+
+  },
+  "status": "Failure",
+  "message": "the server could not find the requested resource",
+  "reason": "NotFound",
+  "details": {
+
+  },
+  "code": 404
+}
+pi@bastion:~ $kubectl describe service bulletin-service/
+Name:              bulletin-service
+Namespace:         default
+Labels:            <none>
+Annotations:       <none>
+Selector:          app=bulletin
+Type:              ClusterIP
+IP:                10.43.124.111
+Port:              <unset>  8000/TCP
+TargetPort:        8080/TCP
+Endpoints:         10.42.1.3:8080,10.42.1.4:8080
+Session Affinity:  None
+Events:            <none>
+----
+
+? maybe the port needs a name.
+
+----
+pi@bastion:~ $ cat bulletin-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: bulletin-service
+spec:
+  selector:
+    app: bulletin
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8080
+      name: myport
+pi@bastion:~ $ kubectl delete -f bulletin-service.yaml
+service "bulletin-service" deleted
+pi@bastion:~ $ kubectl create -f bulletin-service.yaml
+service/bulletin-service created
+pi@bastion:~ $ kubectl describe service bulletin-service
+Name:              bulletin-service
+Namespace:         default
+Labels:            <none>
+Annotations:       <none>
+Selector:          app=bulletin
+Type:              ClusterIP
+IP:                10.43.52.220
+Port:              myport  8000/TCP
+TargetPort:        8080/TCP
+Endpoints:         10.42.1.3:8080,10.42.1.4:8080
+Session Affinity:  None
+Events:            <none>
+----
+
+----
+pi@bastion:~ $ curl http://localhost:8080/api/v1/namespaces/default/services
+----
+
+I can reach the api, but not the bulletin app itself.
+
+Lets try NodePort
+
+----
+Name:                     bulletin-service
+Namespace:                default
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=bulletin
+Type:                     NodePort
+IP:                       10.43.237.152
+Port:                     http  8000/TCP
+TargetPort:               8080/TCP
+NodePort:                 http  30036/TCP
+Endpoints:                10.42.1.3:8080,10.42.1.4:8080
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+----
+
+----
+pi@raspberrypi:~ $ curl localhost:30036
+----
+this as well only works on the worker and not the server -.-
+
+So I guess I will deploy the blinker image and not care about networking for now. :D
+
+----
+pi@bastion:~ $ kubectl create -f blinker-deployment.yml
+deployment.apps/blinker created
+pi@bastion:~ $ kubectl get node
+NAME          STATUS   ROLES    AGE     VERSION
+raspberrypi   Ready    <none>   4h22m   v1.18.10+k3s2
+rpinode       Ready    master   4h35m   v1.18.10+k3s2
+pi@bastion:~ $ kubectl get deployments
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+bulletin-deployment   2/2     2            2           4h1m
+blinker               0/2     2            0           13s
+----
+
+----
+pi@bastion:~ $ kubectl describe  service  blinker
+Name:                     blinker
+Namespace:                default
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=blinker
+Type:                     NodePort
+IP:                       10.43.35.160
+Port:                     <unset>  8082/TCP
+TargetPort:               8082/TCP
+NodePort:                 <unset>  30741/TCP
+Endpoints:                10.42.1.5:8082,10.42.1.6:8082
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+----
+
+I forgot blinker is currently an nginx server, because I couldn't get the blinker image from dockerhub.
+
+----
+pi@bastion:~ $ docker pull gepardec/k3s-golang-blinker:1.0.1-arm
+1.0.1-arm: Pulling from gepardec/k3s-golang-blinker
+Digest: sha256:0ad0948601a89e020a76e5996429d7a0d0297f10e1c153dd366004f45df1e76e
+Status: Image is up to date for gepardec/k3s-golang-blinker:1.0.1-arm
+docker.io/gepardec/k3s-golang-blinker:1.0.1-arm
+----
+
+----
+pi@bastion:~ $ sudo nano blinker-deployment.yml
+pi@bastion:~ $ cat blinker-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: blinker
+spec:
+selector:
+matchLabels:
+app: blinker
+replicas: 2
+template:
+metadata:
+labels:
+app: blinker
+spec:
+containers:
+- name: blinker
+image: gepardec/k3s-golang-blinker:1.0.1-arm
+ports:
+- containerPort: 8082
+pi@bastion:~ $ kubectl delete -f blinker-deployment.yml
+deployment.apps "blinker" deleted
+pi@bastion:~ $ kubectl create -f blinker-deployment.yml
+deployment.apps/blinker created
+pi@bastion:~ $ kubectl get deployments
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+bulletin-deployment   2/2     2            2           4h11m
+blinker               0/2     2            0           7s
+pi@bastion:~ $ kubectl get deployments
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+bulletin-deployment   2/2     2            2           4h11m
+blinker               1/2     2            1           10s
+pi@bastion:~ $ kubectl get deployments
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+bulletin-deployment   2/2     2            2           4h11m
+blinker               2/2     2            2           12s
+----
+
+this time I could deploy blinker to the cluster.
+
+==== Blinker in Docker
+try the image in docker only and see if the led blinks
+
+
+----
+pi@raspberrypi:~ $ docker run  gepardec/k3s-golang-blinker:1.0.1-arm -d -p 8082:8082 -it
+Started
+----
+
+2nd shell
+
+----
+pi@raspberrypi:~/k3s-golang-blinker $ docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' keen_davinci
+172.17.0.2
+----
+
+----
+pi@raspberrypi:~/k3s-golang-blinker $ wget 172.17.0.2:8082/on
+--2020-11-11 15:42:00--  http://172.17.0.2:8082/on
+Connecting to 172.17.0.2:8082... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 31 [text/plain]
+Saving to: ‘on’
+
+on                                           100%[===========================================================================================>]      31  --.-KB/s    in 0s
+
+2020-11-11 15:42:00 (1.48 MB/s) - ‘on’ saved [31/31]
+----
+
+Success!
+
+No idea why the following solved it, because im on linux...
+https://stackoverflow.com/questions/44649438/localhost-refuses-connection-with-docker[Link]
+https://docs.docker.com/docker-for-windows/troubleshoot/#limitations-of-windows-containers-for-localhost-and-published-ports[Link]
+
+
+----
+^Cpi@raspberrypi:~ $ docker run  gepardec/k3s-golang-blinker:1.0.1-arm -d -p 8082:8082 -it
+Started
+/On
+/on
+URL parameter 'pin' is missing
+URL parameter 'pin' is missing
+URL parameter 'pin' is missing
+URL parameter 'pin' is missing
+URL parameter 'pin' is missing
+URL parameter 'pin' is missing
+URL parameter 'pin' is missing
+open /dev/mem: no such file or directory
+open /dev/mem: no such file or directory
+open /dev/mem: no such file or directory
+open /dev/mem: no such file or directory
+open /dev/mem: no such file or directory
+----
+ vs.
+
+----
+pi@raspberrypi:~/k3s-golang-blinker $ wget 172.17.0.2:8082/on
+--2020-11-11 15:49:29--  http://172.17.0.2:8082/on
+Connecting to 172.17.0.2:8082... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 31 [text/plain]
+Saving to: ‘on.2’
+
+on.2                                         100%[===========================================================================================>]      31  --.-KB/s    in 0s
+
+2020-11-11 15:49:29 (1.48 MB/s) - ‘on.2’ saved [31/31]
+
+pi@raspberrypi:~/k3s-golang-blinker $ wget 172.17.0.2:8082/off
+--2020-11-11 15:49:34--  http://172.17.0.2:8082/off
+Connecting to 172.17.0.2:8082... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 31 [text/plain]
+Saving to: ‘off.1’
+
+off.1                                        100%[===========================================================================================>]      31  --.-KB/s    in 0s
+
+2020-11-11 15:49:34 (161 KB/s) - ‘off.1’ saved [31/31]
+
+pi@raspberrypi:~/k3s-golang-blinker $ wget 172.17.0.2:8082/off?int=20
+--2020-11-11 15:51:04--  http://172.17.0.2:8082/off?int=20
+Connecting to 172.17.0.2:8082... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 31 [text/plain]
+Saving to: ‘off?int=20’
+
+off?int=20                                   100%[===========================================================================================>]      31  --.-KB/s    in 0s
+
+2020-11-11 15:51:04 (786 KB/s) - ‘off?int=20’ saved [31/31]
+
+pi@raspberrypi:~/k3s-golang-blinker $ wget 172.17.0.2:8082/on?pin=13
+--2020-11-11 15:54:46--  http://172.17.0.2:8082/on?pin=13
+Connecting to 172.17.0.2:8082... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 132 [text/plain]
+Saving to: ‘on?pin=13’
+
+on?pin=13                                    100%[===========================================================================================>]     132  --.-KB/s    in 0s
+
+2020-11-11 15:54:46 (2.06 MB/s) - ‘on?pin=13’ saved [132/132]
+
+pi@raspberrypi:~/k3s-golang-blinker $ wget 172.17.0.2:8082/on?pin=12
+--2020-11-11 15:54:55--  http://172.17.0.2:8082/on?pin=12
+Connecting to 172.17.0.2:8082... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 132 [text/plain]
+Saving to: ‘on?pin=12’
+
+on?pin=12                                    100%[===========================================================================================>]     132  --.-KB/s    in 0s
+
+2020-11-11 15:54:55 (2.06 MB/s) - ‘on?pin=12’ saved [132/132]
+
+pi@raspberrypi:~/k3s-golang-blinker $ wget 172.17.0.2:8082/on?pin=11
+--2020-11-11 15:55:01--  http://172.17.0.2:8082/on?pin=11
+Connecting to 172.17.0.2:8082... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 132 [text/plain]
+Saving to: ‘on?pin=11’
+
+on?pin=11                                    100%[===========================================================================================>]     132  --.-KB/s    in 0s
+
+2020-11-11 15:55:01 (7.50 MB/s) - ‘on?pin=11’ saved [132/132]
+
+pi@raspberrypi:~/k3s-golang-blinker $ wget 172.17.0.2:8082/on?pin=1
+--2020-11-11 15:55:20--  http://172.17.0.2:8082/on?pin=1
+Connecting to 172.17.0.2:8082... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 132 [text/plain]
+Saving to: ‘on?pin=1’
+
+on?pin=1                                     100%[===========================================================================================>]     132  --.-KB/s    in 0s
+
+2020-11-11 15:55:20 (6.70 MB/s) - ‘on?pin=1’ saved [132/132]
+
+pi@raspberrypi:~/k3s-golang-blinker $ wget 172.17.0.2:8082/on?pin=26
+----
+
+getting 200-OK for a faulty request <3
+
+
+seems i am missing root permissions or gpio permissions
+https://github.com/stianeikeland/go-rpio[Link]
+
+----
+root      2145  0.0  0.0   8460  3248 pts/0    S+   16:13   0:00 sudo docker run gepardec/k3s-golang-blinker:1.0.1-arm -d -p 8082:8082
+root      2150  1.4  0.6 1047556 53324 pts/0   Sl+  16:13   0:00 docker run gepardec/k3s-golang-blinker:1.0.1-arm -d -p 8082:8082
+root      2185  0.0  0.0 108220  6316 ?        Sl   16:13   0:00 containerd-shim -namespace moby -workdir /var/lib/containerd/io.containerd.runtime.v1.linux/moby/b80a2861fc6e1a3
+root      2208  0.2  0.0 707072  4300 ?        Ssl  16:13   0:00 /main -d -p 8082:8082
+----
+
+still cant access /dev/mem/...
+
+Lets try:
+
+https://github.com/stianeikeland/go-rpio/issues/65[Link]
+
+sudo docker run  gepardec/k3s-golang-blinker:1.0.1-arm -d -p 8082:8082 --privileged -v /dev/mem:/dev/mem -v /dev/gpiomem:/dev/gpiomem
+
+https://stackoverflow.com/questions/48441737/docker-error-no-access-to-dev-mem-try-running-as-root[Link]
+
+sudo docker run  -it --device /dev/mem --device /dev/gpiomem gepardec/k3s-golang-blinker:1.0.1-arm -d -p 8082:8082
+
+----
+pi@raspberrypi:~ $ sudo docker run  -it --device /dev/mem --device /dev/gpiomem gepardec/k3s-golang-blinker:1.0.1-arm -d -p 8082:8082
+----
+
+Finally!
+
+----
+pi@raspberrypi:~ $ wget -post-data 'pin=13&interval=1' 172.17.0.2:8082/blink
+----
+
+does not work
+
+
+----
+pi@raspberrypi:~ $ wget '172.17.0.2:8082/blink?interval=1000&pin=13&count=20'
+----
+
+Profit
